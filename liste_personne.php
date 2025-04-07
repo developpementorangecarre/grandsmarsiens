@@ -1,1 +1,224 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" />    <script language="javascript" type="text/javascript"><!--function ouvre_form(formulaire) {     document.getElementById(formulaire).submit(); } function GetId(id){return document.getElementById(id);}var i=false; // La variable i nous dit si la bulle est visible ou non function move(e) {  if(i) {  // Si la bulle est visible, on calcul en temps reel sa position ideale    if (navigator.appName!="Microsoft Internet Explorer") { // Si on est pas sous IE    GetId("curseur").style.left=e.pageX + 5+"px";    GetId("curseur").style.top=e.pageY + 10+"px";    }    else { // Modif proposÈ par TeDeum, merci ‡  lui    if(document.documentElement.clientWidth>0) {GetId("curseur").style.left=20+event.x+document.documentElement.scrollLeft+"px";GetId("curseur").style.top=10+event.y+document.documentElement.scrollTop+"px";    } else {GetId("curseur").style.left=20+event.x+document.body.scrollLeft+"px";GetId("curseur").style.top=10+event.y+document.body.scrollTop+"px";         }    }  }} function montre(text) {  if(i==false) {  GetId("curseur").style.visibility="visible"; // Si il est cacher (la verif n'est qu'une securitÈ) on le rend visible.  GetId("curseur").innerHTML = text; // on copie notre texte dans l'ÈlÈment html  i=true;  }}function cache() {if(i==true) {GetId("curseur").style.visibility="hidden"; // Si la bulle est visible on la cachei=false;}}document.onmousemove=move; // dËs que la souris bouge, on appelle la fonction move pour mettre ‡ jour la position de la bulle.//--></script></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>		<div class="boxed"><h1 class="title2">Listes des personnes </h1><?phpinclude("functions.inc.php");include("conf.inc.php");$connection=db_connect($host,$db,$username,$password);$nom=$_GET['nom'];$id=$_GET['id'];$debut=$_GET['debut'];if (isset($id)):{  $query="select * from pm_personnes where id=$id order by id desc " ;}elseif (isset($debut)):{  $query="select * from pm_personnes where nom like '$debut%' order by id desc " ;}else:{  $query="select * from pm_personnes where nom like '%$nom%' order by id desc " ;}endif;echo "<table class=sample><td> numÈro  </td><td> Nom </td>"	;		$result=exec_sql($query,$connection);$counter=0;$bgcolor="#FFFFFF";while ($ligne=fetch_row($result)){			$id=$ligne[0];			$nom=$ligne[1];			$prenom=$ligne[2];			$adresse=$ligne[3];			$ville=$ligne[4];			$tel=$ligne[5];			$email=$ligne[6];						      $query_liste="select a.liste, count(*) as nombre_articles                     from pm_articles as a, pm_liste_articles as l where l.vendeur=$id and a.liste=l.id group by a.liste" ;      $result_liste=exec_sql($query_liste,$connection);      $info_bulle_liste="";      while ($ligne_liste=fetch_row($result_liste))      {        $liste_id=$ligne_liste[0];        $nb_articles=$ligne_liste[1];        $info_bulle_liste="$info_bulle_liste <br> Liste $liste_id : $nb_articles articles";			}						$query_vente="select a.vente, count(*) as nombre_articles                     from pm_articles as a, pm_ventes as v where v.client=$id and a.vente=v.id group by a.vente" ;      $result_vente=exec_sql($query_vente,$connection);      $info_bulle_vente="";      while ($ligne_vente=fetch_row($result_vente))      {        $vente_id=$ligne_vente[0];        $nb_articles=$ligne_vente[1];        $info_bulle_vente="$info_bulle_vente <br> Vente $vente_id : $nb_articles articles";			}									$info_bulle_personne="Adresse : $adresse <br>Ville   : $ville <br>E-Mail  : $email <br> Telephone : $tel <br>";						echo "<tr bgcolor=$bgcolor>			<td><center><a href=modifier_personne.php?id=$id>  $id </a></center></td>			<td onmouseover=\"montre('$info_bulle_personne');\" onmouseout=\"cache();\">                                   <b>$nom</b>  $prenom </td>			</td>			<td onmouseover=\"montre('$info_bulle_liste');\" onmouseout=\"cache();\">			<form name=depot_$id action=nouvelle_liste.php method=post><input type=hidden name=vendeur value=$id><input type=hidden name=posted value=1><input type=submit value=\"DEPOTS\"></form>			</td>			<td onmouseover=\"montre('$info_bulle_vente');\" onmouseout=\"cache();\">			<form name=vente_$id action=nouvelle_vente.php method=post><input type=hidden name=client value=$id><input type=hidden name=posted value=1><input type=submit value=\"ACHATS\"></form>			</td>			<td onmouseover=\"montre('$info_bulle_liste');\" onmouseout=\"cache();\">			<form name=depot_$id action=nouveau_retrait.php method=post><input type=hidden name=vendeur value=$id><input type=hidden name=posted value=1><input type=submit value=\"RETRAIT\"></form>			</td>			</tr>";			echo "<style type=\"text/css\">#div1, #div2, #div3 {position:absolute; top: 100; left: 200; width:200; visibility:hidden}</style>      ";	$counter++;	if (($counter%2) == 0):		$bgcolor="#FFFFFF";	else:		$bgcolor="#EEEEEE";			endif;	}		echo "</table>";?><div id="curseur" class="infobulle"></div></div></div>	<div style="clear: both;">&nbsp;</div></div><?php include("footer.php"); ?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+  
+  <script language="javascript" type="text/javascript">
+<!--
+
+function ouvre_form(formulaire) { 
+
+    document.getElementById(formulaire).submit(); 
+} 
+
+function GetId(id)
+{
+return document.getElementById(id);
+}
+var i=false; // La variable i nous dit si la bulle est visible ou non
+ 
+function move(e) {
+  if(i) {  // Si la bulle est visible, on calcul en temps reel sa position ideale
+    if (navigator.appName!="Microsoft Internet Explorer") { // Si on est pas sous IE
+    GetId("curseur").style.left=e.pageX + 5+"px";
+    GetId("curseur").style.top=e.pageY + 10+"px";
+    }
+    else { // Modif proposÔøΩ par TeDeum, merci ÔøΩ  lui
+    if(document.documentElement.clientWidth>0) {
+GetId("curseur").style.left=20+event.x+document.documentElement.scrollLeft+"px";
+GetId("curseur").style.top=10+event.y+document.documentElement.scrollTop+"px";
+    } else {
+GetId("curseur").style.left=20+event.x+document.body.scrollLeft+"px";
+GetId("curseur").style.top=10+event.y+document.body.scrollTop+"px";
+         }
+    }
+  }
+}
+ 
+function montre(text) {
+  if(i==false) {
+  GetId("curseur").style.visibility="visible"; // Si il est cacher (la verif n'est qu'une securitÔøΩ) on le rend visible.
+  GetId("curseur").innerHTML = text; // on copie notre texte dans l'ÔøΩlÔøΩment html
+  i=true;
+  }
+}
+function cache() {
+if(i==true) {
+GetId("curseur").style.visibility="hidden"; // Si la bulle est visible on la cache
+i=false;
+}
+}
+document.onmousemove=move; // dÔøΩs que la souris bouge, on appelle la fonction move pour mettre ÔøΩ jour la position de la bulle.
+//-->
+</script>
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>
+		
+<div class="boxed">
+<h1 class="title2">Listes des personnes </h1>
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$connection=db_connect($host,$port,$db,$username,$password);
+
+$nom = $_GET['nom'] ?? null;
+$id = $_GET['id'] ?? null;
+$debut = $_GET['debut'] ?? null;
+
+try {
+    $connection = db_connect($host, $port, $db, $username, $password);
+
+    if (isset($id)) {
+        $query = "SELECT * FROM pm_personnes WHERE id = :id ORDER BY id DESC";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    } elseif (isset($debut)) {
+        $query = "SELECT * FROM pm_personnes WHERE nom LIKE :debut ORDER BY id DESC";
+        $stmt = $connection->prepare($query);
+        $debut .= '%';
+        $stmt->bindParam(':debut', $debut, PDO::PARAM_STR);
+    } else {
+        $query = "SELECT * FROM pm_personnes WHERE nom LIKE :nom ORDER BY id DESC";
+        $stmt = $connection->prepare($query);
+        $nom = "%$nom%";
+        $stmt->bindParam(':nom', $nom, PDO::PARAM_STR);
+    }
+
+    $stmt->execute();
+    $personnes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo "<table class=sample>
+        <td> Num√©ro </td>
+        <td> Nom </td>
+    ";
+
+    $counter = 0;
+    $bgcolor = "#FFFFFF";
+
+    foreach ($personnes as $ligne) {
+        $id = $ligne['id'];
+        $nom = $ligne['nom'];
+        $prenom = $ligne['prenom'];
+        $adresse = $ligne['adresse'];
+        $ville = $ligne['ville'];
+        $tel = $ligne['tel'];
+        $email = $ligne['email'];
+
+        // R√©cup√©ration des listes
+        $query_liste = "
+            SELECT a.liste, COUNT(*) AS nombre_articles 
+            FROM pm_articles AS a
+            JOIN pm_liste_articles AS l ON l.id = a.liste
+            WHERE l.vendeur = :id
+            GROUP BY a.liste
+        ";
+        $stmt_liste = $connection->prepare($query_liste);
+        $stmt_liste->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt_liste->execute();
+        $listes = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
+
+        $info_bulle_liste = "";
+        foreach ($listes as $ligne_liste) {
+            $liste_id = $ligne_liste['liste'];
+            $nb_articles = $ligne_liste['nombre_articles'];
+            $info_bulle_liste .= "<br> Liste $liste_id : $nb_articles articles";
+        }
+
+        // R√©cup√©ration des ventes
+        $query_vente = "
+            SELECT a.vente, COUNT(*) AS nombre_articles 
+            FROM pm_articles AS a
+            JOIN pm_ventes AS v ON v.id = a.vente
+            WHERE v.client = :id
+            GROUP BY a.vente
+        ";
+        $stmt_vente = $connection->prepare($query_vente);
+        $stmt_vente->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt_vente->execute();
+        $ventes = $stmt_vente->fetchAll(PDO::FETCH_ASSOC);
+
+        $info_bulle_vente = "";
+        foreach ($ventes as $ligne_vente) {
+            $vente_id = $ligne_vente['vente'];
+            $nb_articles = $ligne_vente['nombre_articles'];
+            $info_bulle_vente .= "<br> Vente $vente_id : $nb_articles articles";
+        }
+
+        $info_bulle_personne = "Adresse : $adresse <br>Ville : $ville <br>E-Mail : $email <br> T√©l√©phone : $tel <br>";
+
+        echo "<tr bgcolor=$bgcolor>
+            <td><center><a href=modifier_personne.php?id=$id> $id </a></center></td>
+            <td onmouseover=\"montre('$info_bulle_personne');\" onmouseout=\"cache();\"> 
+                <b>$nom</b> $prenom 
+            </td>
+            <td onmouseover=\"montre('$info_bulle_liste');\" onmouseout=\"cache();\">
+                <form name=depot_$id action=nouvelle_liste.php method=post>
+                    <input type=hidden name=vendeur value=$id>
+                    <input type=hidden name=posted value=1>
+                    <input type=submit value=\"DEPOTS\">
+                </form>
+            </td>
+            <td onmouseover=\"montre('$info_bulle_vente');\" onmouseout=\"cache();\">
+                <form name=vente_$id action=nouvelle_vente.php method=post>
+                    <input type=hidden name=client value=$id>
+                    <input type=hidden name=posted value=1>
+                    <input type=submit value=\"ACHATS\">
+                </form>
+            </td>
+            <td onmouseover=\"montre('$info_bulle_liste');\" onmouseout=\"cache();\">
+                <form name=depot_$id action=nouveau_retrait.php method=post>
+                    <input type=hidden name=vendeur value=$id>
+                    <input type=hidden name=posted value=1>
+                    <input type=submit value=\"RETRAIT\">
+                </form>
+            </td>
+        </tr>";
+
+        $counter++;
+        $bgcolor = ($counter % 2 == 0) ? "#FFFFFF" : "#EEEEEE";
+    }
+
+    echo "</table>";
+
+} catch (PDOException $e) {
+    echo "Erreur lors de la r√©cup√©ration des personnes : " . $e->getMessage();
+}
+
+
+?>
+<div id="curseur" class="infobulle"></div>
+
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+
+
+
+
+<?php include("footer.php"); ?>
+
+
+</body>
+</html>

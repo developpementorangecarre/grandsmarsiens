@@ -1,1 +1,178 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" /></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>		<div class="boxed">			<?phpinclude("functions.inc.php");include("conf.inc.php");$connection=db_connect($host,$db,$username,$password);$id=$_GET['id'];$posted=$_POST['posted'];if (isset($posted)):	$nom=text2sql($_POST['nom']);	$prenom=text2sql($_POST['prenom']);	$adresse=text2sql($_POST['adresse']);	$ville=text2sql($_POST['ville']);	$tel=text2sql($_POST['tel']);	$email=text2sql($_POST['email']);	$categorie=$_POST['categorie'];		$query="select count(*) from pm_personnes 		where 		nom='$nom' and 		prenom='$prenom' and		adresse='$adresse' and		ville='$ville' and		email='$email' and		tel='$tel'		" ;	$result=exec_sql($query,$connection);				while ($ligne=fetch_row($result))	{		$compte=$ligne[0];	}				$query="update pm_personnes set nom='$nom', prenom='$prenom', adresse='$adresse', ville='$ville', tel='$tel', email='$email', categorie=$categorie     where id=$id";     echo $query;		exec_sql($query,$connection);		$query="select p.id,p.nom,p.prenom,p.adresse,p.ville,p.tel,p.email,c.categorie       from pm_personnes as p, pm_categories as c			where 			p.id=$id and p.categorie=c.id			order by p.id asc " ;				$result=exec_sql($query,$connection);			while ($ligne=fetch_row($result))		{			$id=$ligne[0];			$nom=$ligne[1];			$prenom=$ligne[2];			$adresse=$ligne[3];			$ville=$ligne[4];			$tel=$ligne[5];			$email=$ligne[6];			$categorie=$ligne[7];			echo "<h3>Num&eacute;ro $id </h3><br>";			echo "<h4><table class=sample><tr><td>NOM : $nom    </td><td>PRENOM : $prenom </td></tr>";			echo "<tr><td colspan=2>ADRESSE : $adresse </td></tr>";			echo "<tr><td colspan=2>VILLE : $ville </td></tr>";			echo "<tr><td colspan=2>EMAIL : $email </td></tr>";			echo "</td><td colspan=2>TEL : $tel </td></tr>";			echo "<tr><td colspan=2>CATEGORIE: $categorie </td></tr>";      echo "</table></h4>";		}			echo "	<form method=post action=nouvelle_liste.php>	";		echo "<input type=hidden name=vendeur value=$id>";	echo "	<center><input type=submit name=envoyer value=\"    VENDEUR : DEPOT d'ARTICLES     \"></center>	<input type=hidden name=posted value=1>	</form>";		echo "	<form method=post action=nouvelle_vente.php>	";		echo "<input type=hidden name=client value=$id>";	echo "	<center><input type=submit name=envoyer value=\"    CLIENT : NOUVELLE VENTE      \"></center>	<input type=hidden name=posted value=1>	</form>";		echo "	<form method=get action=modifier_personne.php>	<input type=hidden name=id value=$id>	<center><input type=submit name=envoyer value=\"    MODIFIER LES DONNEES      \"></center>	</form>";			echo "	L'association Les P'tits Marsiens dispose de moyens informatiques destinés à gérer plus facilement les ventes et les dépôts d'articles.	<br>	Les informations enregistrées sont réservées à l’usage de l'association et ne peuvent être communiquées qu’aux adhérents assurant la gestion de l'assocation.	<br>	Conformément aux articles 39 et suivants de la loi n° 78-17 du 6 janvier 1978 relative à l’informatique, aux fichiers et aux libertés, toute personne peut obtenir communication et, le cas échéant, rectification ou suppression des informations la concernant, en s’adressant par courrier ou par e-mail à l'association.	<br>	";	else:		$query="select id,nom,prenom,adresse,ville,tel,email,categorie from pm_personnes 			where 			id=$id			order by id asc " ;				$result=exec_sql($query,$connection);			while ($ligne=fetch_row($result))		{			$id=$ligne[0];			$nom=$ligne[1];			$prenom=$ligne[2];			$adresse=$ligne['adresse'];			$ville=$ligne[4];			$tel=$ligne[5];			$email=$ligne[6];			$categorie=$ligne['categorie'];		}	  echo "  <h1 class=\"title2\">Modifier les données d'une personne</h1>  <form method=post action=modifier_personne.php?id=$id>  <table>  <tr><td>Nom : </td><td><input type=texte size=80 name=nom value=\"$nom\"></td></tr>  <tr><td>Prenom : </td><td><input type=texte size=80 name=prenom value=\"$prenom\"></td></tr>  <tr><td>Adresse : </td><td>  <textarea cols=63 rows=2 name=adresse>$adresse </textarea></td></tr>  <tr><td>Ville : </td><td><input type=texte size=80 name=ville value=\"$ville\"></td></tr>  <tr><td>Telephone : </td><td><input type=texte size=80 name=tel value=\"$tel\"></td></tr>  <tr><td>Email : </td><td><input type=texte size=80 name=email value=\"$email\"></td></tr>  ";echo "<tr><td>categorie : </td><td><select name=categorie>";$query="select id, categorie from pm_categories order by id asc";$result=exec_sql($query,$connection);while ($ligne=fetch_row($result)){	$categorie_id=$ligne[0];	$categorie_libelle=$ligne[1];  if ($categorie==$categorie_id):	 echo "<option selected value=$categorie_id>$categorie_libelle</option>";	else:	 echo "<option value=$categorie_id>$categorie_libelle</option>";		endif;}echo "</select></td></tr>";echo "</table><center><input type=submit name=envoyer value=\"              ENVOYER            \"></center><br><input type=hidden name=posted value=1><br></form>";endif;echo "<HR>";?></div></div>	<div style="clear: both;">&nbsp;</div></div><?php include("footer.php"); ?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>
+		
+<div class="boxed">
+			
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$connection=db_connect($host,$port,$db,$username,$password);
+
+// On rÃ©cupÃ¨re les valeurs en toute sÃ©curitÃ©
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+$posted = filter_input(INPUT_POST, 'posted', FILTER_VALIDATE_INT);
+
+// Si le formulaire a Ã©tÃ© soumis
+if (isset($posted) && $posted == 1) {
+    // SÃ©curisation des donnÃ©es
+    $nom = text2sql($_POST['nom']);
+    $prenom = text2sql($_POST['prenom']);
+    $adresse = text2sql($_POST['adresse']);
+    $ville = text2sql($_POST['ville']);
+    $tel = text2sql($_POST['tel']);
+    $email = text2sql($_POST['email']);
+    $categorie = filter_input(INPUT_POST, 'categorie', FILTER_VALIDATE_INT);
+
+    // VÃ©rification des doublons
+    $query = "
+        SELECT COUNT(*) FROM pm_personnes 
+        WHERE nom = :nom AND prenom = :prenom AND adresse = :adresse AND ville = :ville 
+        AND email = :email AND tel = :tel
+    ";
+    $stmt = $connection->prepare($query);
+    $stmt->execute([
+        ':nom' => $nom,
+        ':prenom' => $prenom,
+        ':adresse' => $adresse,
+        ':ville' => $ville,
+        ':email' => $email,
+        ':tel' => $tel
+    ]);
+    $compte = $stmt->fetchColumn();
+
+    if ($compte == 0) {
+        // Mise Ã  jour des donnÃ©es de la personne
+        $query = "
+            UPDATE pm_personnes 
+            SET nom = :nom, prenom = :prenom, adresse = :adresse, ville = :ville, tel = :tel, email = :email, categorie = :categorie
+            WHERE id = :id
+        ";
+        $stmt = $connection->prepare($query);
+        $stmt->execute([
+            ':nom' => $nom,
+            ':prenom' => $prenom,
+            ':adresse' => $adresse,
+            ':ville' => $ville,
+            ':tel' => $tel,
+            ':email' => $email,
+            ':categorie' => $categorie,
+            ':id' => $id
+        ]);
+
+        // Affichage des donnÃ©es mises Ã  jour
+        $query = "
+            SELECT p.id, p.nom, p.prenom, p.adresse, p.ville, p.tel, p.email, c.categorie 
+            FROM pm_personnes AS p
+            JOIN pm_categories AS c ON p.categorie = c.id
+            WHERE p.id = :id
+        ";
+        $stmt = $connection->prepare($query);
+        $stmt->execute([':id' => $id]);
+        $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo "<h3>NumÃ©ro {$ligne['id']}</h3>";
+        echo "<h4><table class='sample'>
+            <tr><td>NOM : {$ligne['nom']}</td><td>PRENOM : {$ligne['prenom']}</td></tr>
+            <tr><td colspan='2'>ADRESSE : {$ligne['adresse']}</td></tr>
+            <tr><td colspan='2'>VILLE : {$ligne['ville']}</td></tr>
+            <tr><td colspan='2'>EMAIL : {$ligne['email']}</td></tr>
+            <tr><td colspan='2'>TEL : {$ligne['tel']}</td></tr>
+            <tr><td colspan='2'>CATEGORIE : {$ligne['categorie']}</td></tr>
+        </table></h4>";
+
+        echo "
+        <form method='post' action='nouvelle_liste.php'>
+            <input type='hidden' name='vendeur' value='{$ligne['id']}'>
+            <center><input type='submit' name='envoyer' value='VENDEUR : DEPOT d\'ARTICLES'></center>
+            <input type='hidden' name='posted' value='1'>
+        </form>
+        <form method='post' action='nouvelle_vente.php'>
+            <input type='hidden' name='client' value='{$ligne['id']}'>
+            <center><input type='submit' name='envoyer' value='CLIENT : NOUVELLE VENTE'></center>
+            <input type='hidden' name='posted' value='1'>
+        </form>
+        <form method='get' action='modifier_personne.php'>
+            <input type='hidden' name='id' value='{$ligne['id']}'>
+            <center><input type='submit' name='envoyer' value='MODIFIER LES DONNEES'></center>
+        </form>
+        ";
+    } else {
+        echo "La personne existe dÃ©jÃ  dans la base de donnÃ©es.";
+    }
+} else {
+    // RÃ©cupÃ©ration des donnÃ©es existantes de la personne
+    $query = "
+        SELECT id, nom, prenom, adresse, ville, tel, email, categorie 
+        FROM pm_personnes 
+        WHERE id = :id
+    ";
+    $stmt = $connection->prepare($query);
+    $stmt->execute([':id' => $id]);
+    $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Formulaire de modification des donnÃ©es
+    echo "
+    <h1 class='title2'>Modifier les donnÃ©es d'une personne</h1>
+    <form method='post' action='modifier_personne.php?id={$ligne['id']}'>
+    <table>
+        <tr><td>Nom : </td><td><input type='text' size='80' name='nom' value='{$ligne['nom']}'></td></tr>
+        <tr><td>Prenom : </td><td><input type='text' size='80' name='prenom' value='{$ligne['prenom']}'></td></tr>
+        <tr><td>Adresse : </td><td><textarea cols='63' rows='2' name='adresse'>{$ligne['adresse']}</textarea></td></tr>
+        <tr><td>Ville : </td><td><input type='text' size='80' name='ville' value='{$ligne['ville']}'></td></tr>
+        <tr><td>TÃ©lÃ©phone : </td><td><input type='text' size='80' name='tel' value='{$ligne['tel']}'></td></tr>
+        <tr><td>Email : </td><td><input type='text' size='80' name='email' value='{$ligne['email']}'></td></tr>
+        <tr><td>CatÃ©gorie : </td><td><select name='categorie'>";
+
+    // RÃ©cupÃ©ration des catÃ©gories
+    $query = "SELECT id, categorie FROM pm_categories ORDER BY id ASC";
+    $stmt = $connection->query($query);
+    while ($cat = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $selected = ($ligne['categorie'] == $cat['id']) ? "selected" : "";
+        echo "<option value='{$cat['id']}' $selected>{$cat['categorie']}</option>";
+    }
+
+    echo "</select></td></tr>
+    </table>
+    <center><input type='submit' name='envoyer' value='ENVOYER'></center><br>
+    <input type='hidden' name='posted' value='1'><br>
+    </form>";
+}
+
+echo "<HR>";
+?>
+
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+
+<?php include("footer.php"); ?>
+
+
+</body>
+</html>

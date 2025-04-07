@@ -22,138 +22,143 @@ function popUp(URL)
 
 include("functions.inc.php");
 include("conf.inc.php");
-$connection=db_connect($host,$db,$username,$password);
+$connection=db_connect($host,$port,$db,$username,$password);
 
-$liste_depots="a.liste=0";
+$liste_depots = "a.liste = 0";
 
-$bar=$_POST['bar'];
+$bar = $_POST['bar'] ?? [];
 
+// Requête pour récupérer les articles
+$query = "SELECT a.id, a.designation, a.liste, a.numero, a.prix, t.taille 
+          FROM pm_articles AS a
+          JOIN pm_tailles AS t ON a.taille = t.id
+          WHERE $liste_depots";
 
-$query="select a.id,a.designation,a.liste,a.numero,a.prix,t.taille from pm_articles as a,pm_tailles as t where a.taille=t.id AND($liste_depots)";
-//echo $query;
-$result=exec_sql($query,$connection);	
-//----------------------
-$hauteur_init=96;
-$hauteur_last=92;
-$hauteur=$hauteur_init;
-$espace=0;
-$padding=0;
-$nombre_planche=40;
+try {
+    $stmt = $connection->prepare($query);
+    $stmt->execute();
+} catch (PDOException $e) {
+    die("Erreur SQL : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+}
 
-$table_style="<table border=0 width=100% align=center cellspacing=$espace cellpadding=$padding style=\"border-collapse: collapse\">";
-//-------------
-echo "$table_style
-<tr>";
+//---------------------- Styles et variables d'affichage
+$hauteur_init = 96;
+$hauteur_last = 92;
+$hauteur = $hauteur_init;
+$espace = 0;
+$padding = 0;
+$nombre_planche = 40;
 
-$counter=0;
-$page_saut=0;
-$separateur='a';
-while($counter<40)
-{
-  $reference_article=$bar[$counter];
-  list($liste, $numero)=split('[Aa/.-]', $reference_article);
-  $query="select count(*) as compte from pm_articles where liste=$liste and numero=$numero";
-  $result=exec_sql($query,$connection);	
-  $ok=0;
-  while ($ligne=fetch_row($result))
-  {
-    $ok=$ligne['compte'];
-  }
-  
-  
+$table_style = "<table border='0' width='100%' align='center' cellspacing='$espace' cellpadding='$padding' style='border-collapse: collapse'>";
+echo "$table_style<tr>";
 
-	 if($counter%4==0)
-	 {
-	   	echo '</tr><tr>';
+$counter = 0;
+$saut_page = 0;
+
+while ($counter < 40) {
+    $reference_article = $bar[$counter] ?? '';
+
+    // Séparation de la liste et du numéro
+    $parts = preg_split('/[Aa\/\.-]/', $reference_article);
+    $liste = $parts[0] ?? null;
+    $numero = $parts[1] ?? null;
+
+    if (!$liste || !$numero) {
+        echo "<td align='center' width='25%' height='$hauteur' valign='top'><br></td>";
+        $counter++;
+        continue;
     }
 
-  if ($ok == 1):
-  {
-    $query2="
-select a.id,a.designation,a.liste,a.numero,a.prix,t.taille,
-  ty.type as type, 
-  l.vendeur as vendeur,
-	d.libelle as designation_courte, 
-  c.libelle as couleur,
-  m.libelle as marque  
-from 
-  pm_articles as a, pm_types as ty, pm_tailles as t, pm_designations_courtes as d, pm_couleurs as c, pm_marques as m, pm_liste_articles as l
- 	where a.liste=$liste and a.numero=$numero and t.id=a.taille
-	 and a.type=ty.id and a.designation_courte=d.id and a.couleur=c.id and a.marque=m.id
-and l.id=a.liste"
-;
-	
-	
-	//echo $query2;
-    $result2=exec_sql($query2,$connection);	
-    while ($row=fetch_row($result2))
-    {
-  $designation=$row['designation'];
-  $liste=$row['liste'];
-  $vendeur=$row['vendeur'];  
-  $numero=$row['numero'];
-  $prix=$row['prix'];
-  $taille=$row['taille'];
-  $designation_courte=$row['designation_courte'];
-	$couleur=$row['couleur'];
-	$marque=$row['marque'];
-
-
-	echo "<td align='center' width=25% height=$hauteur valign=top>
-      <table border=0 width=100%>
-	  <tr>
-	  <td colspan=2 align=center><font size=2>$designation_courte $couleur<br>$marque<td></font>
-	  </tr>
-	  <tr>
-      <td colspan=2 align=center><font size=3>Taille : $taille </td>
-	  </tr>
-	  <tr>
-	  <td align=center>
-	  <b><font size=3 >$liste - $numero</font></b>
-	  </td>
-	  <td align=center>
-      </font><font size=5><b> $prix �  </b></font>
-	  </td>
-	  </tr>
-	  </table>
-      </td>";
+    // Vérification de l'existence de l'article
+    try {
+        $stmt_check = $connection->prepare("SELECT COUNT(*) AS compte FROM pm_articles WHERE liste = :liste AND numero = :numero");
+        $stmt_check->bindParam(':liste', $liste, PDO::PARAM_INT);
+        $stmt_check->bindParam(':numero', $numero, PDO::PARAM_INT);
+        $stmt_check->execute();
+        $row_check = $stmt_check->fetch(PDO::FETCH_ASSOC);
+        $ok = $row_check['compte'] ?? 0;
+    } catch (PDOException $e) {
+        die("Erreur SQL : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
     }
-  
 
-  }
-  else:
-  {
-  	echo "<td align='center' width=25% height=$hauteur valign=top>
-      <br>
-      </td>";
-  }
-  endif;
-	
-	$counter++;
-	$saut_page++;
-	if($counter%36==0)
-	{
-		echo '</tr><tr>';
-	}
+    if ($counter % 4 == 0) {
+        echo '</tr><tr>';
+    }
 
-  if($saut_page>=36)
-  {
-    $hauteur=$hauteur_last;
-  }
+    if ($ok == 1) {
+        try {
+            $stmt_article = $connection->prepare("
+                SELECT a.id, a.designation, a.liste, a.numero, a.prix, t.taille,
+                       ty.type AS type, l.vendeur AS vendeur, d.libelle AS designation_courte, 
+                       c.libelle AS couleur, m.libelle AS marque  
+                FROM pm_articles AS a
+                JOIN pm_types AS ty ON a.type = ty.id
+                JOIN pm_tailles AS t ON a.taille = t.id
+                JOIN pm_designations_courtes AS d ON a.designation_courte = d.id
+                JOIN pm_couleurs AS c ON a.couleur = c.id
+                JOIN pm_marques AS m ON a.marque = m.id
+                JOIN pm_liste_articles AS l ON l.id = a.liste
+                WHERE a.liste = :liste AND a.numero = :numero
+            ");
+            $stmt_article->bindParam(':liste', $liste, PDO::PARAM_INT);
+            $stmt_article->bindParam(':numero', $numero, PDO::PARAM_INT);
+            $stmt_article->execute();
 
-  if($saut_page%$nombre_planche==0)
-	{
-		echo "</tr></table>";
-		
-		echo "<P style=\"page-break-before: always\">";
-		echo "$table_style<tr>";
-		$saut_page=0;
-		$hauteur=$hauteur_init;
-	}
-	
+            if ($row = $stmt_article->fetch(PDO::FETCH_ASSOC)) {
+                $designation = htmlspecialchars($row['designation']);
+                $liste = htmlspecialchars($row['liste']);
+                $vendeur = htmlspecialchars($row['vendeur']);
+                $numero = htmlspecialchars($row['numero']);
+                $prix = htmlspecialchars($row['prix']);
+                $taille = htmlspecialchars($row['taille']);
+                $designation_courte = htmlspecialchars($row['designation_courte']);
+                $couleur = htmlspecialchars($row['couleur']);
+                $marque = htmlspecialchars($row['marque']);
+
+                echo "<td align='center' width='25%' height='$hauteur' valign='top'>
+                        <table border='0' width='100%'>
+                            <tr>
+                                <td colspan='2' align='center'><font size='2'>$designation_courte $couleur<br>$marque</font></td>
+                            </tr>
+                            <tr>
+                                <td colspan='2' align='center'><font size='3'>Taille : $taille</font></td>
+                            </tr>
+                            <tr>
+                                <td align='center'><b><font size='3'>$liste - $numero</font></b></td>
+                                <td align='center'><font size='5'><b>$prix €</b></font></td>
+                            </tr>
+                        </table>
+                      </td>";
+            }
+        } catch (PDOException $e) {
+            die("Erreur SQL : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+        }
+    } else {
+        echo "<td align='center' width='25%' height='$hauteur' valign='top'><br></td>";
+    }
+
+    $counter++;
+    $saut_page++;
+
+    if ($counter % 36 == 0) {
+        echo '</tr><tr>';
+    }
+
+    if ($saut_page >= 36) {
+        $hauteur = $hauteur_last;
+    }
+
+    if ($saut_page % $nombre_planche == 0) {
+        echo "</tr></table>";
+        echo "<p style=\"page-break-before: always\"></p>";
+        echo "$table_style<tr>";
+        $saut_page = 0;
+        $hauteur = $hauteur_init;
+    }
 }
 
 echo '</tr></table>';
+
 //phpinfo();
 
 ?>

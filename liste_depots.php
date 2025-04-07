@@ -1,1 +1,178 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="printer.css" rel="stylesheet" type="text/css" /></head><body><?phpinclude("functions.inc.php");include("conf.inc.php");$liste=$_GET['liste'];$connection=db_connect($host,$db,$username,$password);$bourse_active=$_GET['bourse_active'];if (isset($bourse_active) && isset($liste) ):	$liste=code2liste($liste,$connection);endif;if (isset($bourse_active) && !(isset($liste)) ):	$globalquery="select l.id as liste from pm_liste_articles as l where l.bourse='$bourse_active'";	echo $globalquery;else:	$globalquery="select l.id as liste from pm_liste_articles as l where l.id=$liste";endif;$globalresult=exec_sql($globalquery,$connection);echo	$globalresult;while ($global=fetch_row($globalresult)){	$liste=$global['liste'];	$bourse=liste2bourse($liste,$connection);	$code=liste2code($liste,$connection);	$query="select p.prenom, p.nom , p.id from pm_liste_articles as l, pm_personnes as p where l.id=$liste and l.vendeur=p.id " ;	$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))	{			$vendeur="$ligne[0] $ligne[1]";			$id=$ligne[2];	}	echo "		<table class=sample>		<tr><td>Liste</td><td>Vendeur</td><td>Nom</td></tr><tr>		<td><h2>N° $code$bourse </h2></td>		<td><h2>N° $id </h2></td>		<td><h3>$vendeur </h3></td>		</tr>		</table>";	$bgcolor="#FFFFFF";	// 	  echo "<h3>Articles déposés</h3>";		echo "<table class=sample>		<tr bgcolor=#FFFFFF>		<td> N° </td>		<td> désignation</td>		<td> designation longue</td>		<td> couleur </td>		<td> marque </td>		<td> type </td>		<td> taille </td>		<td> prix </td>		<td> net vendeur </td>				</tr>";		$query="select 	  a.id as id,a.numero as numero, a.designation as designation, a.prix as prix, a.prix_vendeur as prix_vendeur, 	  ty.type as type, ty.image as type_image,	  ta.taille as taille, 		d.libelle as designation_courte, 	  c.libelle as couleur,	  m.libelle as marque  ,	  e.etat as etat_libelle	  from pm_articles as a, pm_types as ty, pm_tailles as ta, pm_designations_courtes as d, pm_couleurs as c, pm_marques as m , pm_etat_articles as e 	  where a.liste=$liste and a.taille=ta.id and a.type=ty.id and a.designation_courte=d.id and a.couleur=c.id and a.marque=m.id	  and e.id=a.etat		order by numero";				$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))		{			$numero=$ligne['numero'];			$designation=$ligne['designation'];			$type=$ligne['type'];				$type_image=$ligne['type_image'];						$taille=$ligne['taille'];			$prix=$ligne['prix'];			$prix_vendeur=$ligne['prix_vendeur'];		$etat_libelle=$ligne['etat_libelle'];		$designation_courte=$ligne['designation_courte'];			$couleur=$ligne['couleur'];			$marque=$ligne['marque'];					echo "<tr bgcolor=$bgcolor>			<td> $numero  </td>			<td> $designation_courte</td>			<td> $designation  </td>			<td> $couleur</td>			<td> $marque</td>			<td><img src=\"$type_image\"></td>			<td> $taille  </td> 			<td> $prix  €</td>			<td> $prix_vendeur €</td>			</tr>";					$counter++;			if (($counter%2) == 0):				$bgcolor="#FFFFFF";			else:				$bgcolor="#FFFFFF";					endif;		}				$query="select sum(prix),sum(prix_vendeur) 		from pm_articles  where liste=$liste and etat=1		";		$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))		{			echo "<tr>			<td colspan=7> TOTAL </td> 			<td> $ligne[0] €</td>			<td> $ligne[1] €</td>			</tr>";						}		echo "</table>";				$query="select sum(a.prix),sum(a.prix_vendeur) 		from pm_articles as a , pm_ventes as v where a.liste=$liste and a.etat=2 and v.id=a.vente		and v.date > '$mois' and v.id=a.vente		";		$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))		{			echo "<tr>			<td colspan=7> TOTAL </td> 			<td> $ligne[0] €</td>			<td> $ligne[1] €</td>			</tr>";						}		echo "</table>";	echo"	<br>	<table class=sample width=1000>	  <tr><td colspan=2 >Lu et approuvé</td>	  </tr>	  <tr height=70>	  <td width=50% valign=top>Date</td><td width=50% valign=top>Signature</td>	  </tr>	</table>		L'association Les P'tits Marsiens dispose de moyens informatiques destinés à gérer plus facilement les ventes et les dépôts d'articles.		<br>		Les informations enregistrées sont réservées à l’usage de l'association et ne peuvent être communiquées qu’aux adhérents assurant la gestion de l'assocation.		<br>		Conformément aux articles 39 et suivants de la loi n° 78-17 du 6 janvier 1978 relative à l’informatique, aux fichiers et aux libertés, toute personne peut obtenir communication et, le cas échéant, rectification ou suppression des informations la concernant, en s’adressant par courrier ou par e-mail à l'association.		<br>			";		echo "<P style=\"page-break-before: always\"></P>";	}		?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="printer.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+
+<body>
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$connection=db_connect($host,$port,$db,$username,$password);
+
+$liste = $_GET['liste'] ?? null;
+$bourse_active = $_GET['bourse_active'] ?? null;
+
+if (!empty($liste)) {
+    $liste = code2liste($liste, $connection);
+}
+
+if (!empty($bourse_active) && empty($liste)) {
+    $globalquery = "SELECT l.id AS liste FROM pm_liste_articles AS l WHERE l.bourse = :bourse_active";
+} else {
+    $globalquery = "SELECT l.id AS liste FROM pm_liste_articles AS l WHERE l.id = :liste";
+}
+
+try {
+    $stmt = $connection->prepare($globalquery);
+    if (!empty($bourse_active) && empty($liste)) {
+        $stmt->bindParam(':bourse_active', $bourse_active, PDO::PARAM_STR);
+    } else {
+        $stmt->bindParam(':liste', $liste, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    while ($global = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $listeId = $global['liste'];
+        $bourse = liste2bourse($listeId, $connection);
+        $code = liste2code($listeId, $connection);
+
+        $query = "SELECT p.prenom, p.nom, p.id 
+                  FROM pm_liste_articles AS l 
+                  JOIN pm_personnes AS p ON l.vendeur = p.id 
+                  WHERE l.id = :liste";
+        $stmt_vendeur = $connection->prepare($query);
+        $stmt_vendeur->bindParam(':liste', $listeId, PDO::PARAM_INT);
+        $stmt_vendeur->execute();
+        $vendeur = "Inconnu";
+        $vendeurId = null;
+        if ($ligne = $stmt_vendeur->fetch(PDO::FETCH_ASSOC)) {
+            $vendeur = htmlspecialchars($ligne['prenom'] . " " . $ligne['nom']);
+            $vendeurId = htmlspecialchars($ligne['id']);
+        }
+
+        echo "<table class='sample'>
+                <tr><td>Liste</td><td>Vendeur</td><td>Nom</td></tr>
+                <tr>
+                    <td><h2>NÂ° {$code}{$bourse}</h2></td>
+                    <td><h2>NÂ° {$vendeurId}</h2></td>
+                    <td><h3>{$vendeur}</h3></td>
+                </tr>
+              </table>";
+
+        echo "<h3>Articles dÃ©posÃ©s</h3>
+              <table class='sample'>
+                <tr bgcolor='#FFFFFF'>
+                    <td>NÂ°</td>
+                    <td>DÃ©signation</td>
+                    <td>Designation longue</td>
+                    <td>Couleur</td>
+                    <td>Marque</td>
+                    <td>Type</td>
+                    <td>Taille</td>
+                    <td>Prix</td>
+                    <td>Net vendeur</td>
+                </tr>";
+
+        $query = "SELECT 
+                    a.id, a.numero, a.designation, a.prix, a.prix_vendeur, 
+                    ty.type, ty.image AS type_image, ta.taille, 
+                    d.libelle AS designation_courte, c.libelle AS couleur, 
+                    m.libelle AS marque, e.etat AS etat_libelle
+                  FROM pm_articles AS a
+                  LEFT JOIN pm_types AS ty ON a.type = ty.id
+                  LEFT JOIN pm_tailles AS ta ON a.taille = ta.id
+                  LEFT JOIN pm_designations_courtes AS d ON a.designation_courte = d.id
+                  LEFT JOIN pm_couleurs AS c ON a.couleur = c.id
+                  LEFT JOIN pm_marques AS m ON a.marque = m.id
+                  LEFT JOIN pm_etat_articles AS e ON e.id = a.etat
+                  WHERE a.liste = :liste
+                  ORDER BY a.numero";
+        $stmt_articles = $connection->prepare($query);
+        $stmt_articles->bindParam(':liste', $listeId, PDO::PARAM_INT);
+        $stmt_articles->execute();
+
+        while ($ligne = $stmt_articles->fetch(PDO::FETCH_ASSOC)) {
+            echo "<tr bgcolor='#FFFFFF'>
+                    <td>{$ligne['numero']}</td>
+                    <td>{$ligne['designation_courte']}</td>
+                    <td>{$ligne['designation']}</td>
+                    <td>{$ligne['couleur']}</td>
+                    <td>{$ligne['marque']}</td>
+                    <td><img src=\"" . htmlspecialchars($ligne['type_image']) . "\"></td>
+                    <td>{$ligne['taille']}</td>
+                    <td>{$ligne['prix']} â‚¬</td>
+                    <td>{$ligne['prix_vendeur']} â‚¬</td>
+                  </tr>";
+        }
+
+        $query = "SELECT SUM(prix) AS total_prix, SUM(prix_vendeur) AS total_vendeur 
+                  FROM pm_articles  
+                  WHERE liste = :liste AND etat = 1";
+        $stmt_total = $connection->prepare($query);
+        $stmt_total->bindParam(':liste', $listeId, PDO::PARAM_INT);
+        $stmt_total->execute();
+        if ($ligne = $stmt_total->fetch(PDO::FETCH_ASSOC)) {
+            $totalPrix = $ligne['total_prix'] ?? 0;
+            $totalVendeur = $ligne['total_vendeur'] ?? 0;
+            echo "<tr>
+                    <td colspan='7'>TOTAL (Articles non vendus)</td> 
+                    <td>{$totalPrix} â‚¬</td>
+                    <td>{$totalVendeur} â‚¬</td>
+                  </tr>";
+        }
+
+        $mois = date('Y-m-01');
+        $query = "SELECT SUM(a.prix) AS total_prix, SUM(a.prix_vendeur) AS total_vendeur 
+                  FROM pm_articles AS a 
+                  JOIN pm_ventes AS v ON v.id = a.vente
+                  WHERE a.liste = :liste AND a.etat = 2 
+                  AND v.date > :mois";
+        $stmt_ventes = $connection->prepare($query);
+        $stmt_ventes->bindParam(':liste', $listeId, PDO::PARAM_INT);
+        $stmt_ventes->bindParam(':mois', $mois, PDO::PARAM_STR);
+        $stmt_ventes->execute();
+        if ($ligne = $stmt_ventes->fetch(PDO::FETCH_ASSOC)) {
+            $totalPrixVentes = $ligne['total_prix'] ?? 0;
+            $totalVendeurVentes = $ligne['total_vendeur'] ?? 0;
+            echo "<tr>
+                    <td colspan='7'>TOTAL (Articles vendus)</td> 
+                    <td>{$totalPrixVentes} â‚¬</td>
+                    <td>{$totalVendeurVentes} â‚¬</td>
+                  </tr>";
+        }
+
+        echo "</table>";
+
+        echo "<br>
+              <table class='sample' width='1000'>
+                  <tr><td colspan='2'>Lu et approuvÃ©</td></tr>
+                  <tr height='70'>
+                      <td width='50%' valign='top'>Date</td>
+                      <td width='50%' valign='top'>Signature</td>
+                  </tr>
+              </table>
+              <p>L'association Les P'tits Marsiens dispose de moyens informatiques destinÃ©s Ã  gÃ©rer plus facilement les ventes et les dÃ©pÃ´ts d'articles.</p>
+              <p>Les informations enregistrÃ©es sont rÃ©servÃ©es Ã  l'usage de l'association et ne peuvent Ãªtre communiquÃ©es qu'aux adhÃ©rents assurant la gestion de l'association.</p>
+              <p>ConformÃ©ment aux articles 39 et suivants de la loi nÂ° 78-17 du 6 janvier 1978 relative Ã  l'informatique, aux fichiers et aux libertÃ©s, toute personne peut obtenir communication et, le cas Ã©chÃ©ant, rectification ou suppression des informations la concernant, en s'adressant par courrier ou par e-mail Ã  l'association.</p>
+              <p style=\"page-break-before: always\"></p>";
+    }
+} catch (PDOException $e) {
+    die("Erreur SQL : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+}
+
+		
+?>
+
+</body>
+</html>

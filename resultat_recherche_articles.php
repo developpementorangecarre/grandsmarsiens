@@ -1,1 +1,180 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><SCRIPT>function confirmation_post(liste,id,designation,formulaire) { var msg = ' Confirmer la suppression de : '+designation; if (confirm(msg)) {    document.getElementById(formulaire).submit();   }  else  {  document.location.replace('depot_articles.php?liste='+liste);     }} </SCRIPT><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" /></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>		<div class="boxed">			<!-- <h3>Caisse</h3> --><?phpinclude("functions.inc.php");include("conf.inc.php");$liste=$_GET['liste'];$marque=$_GET['marque'];$type=$_GET['type'];$designation_courte=$_GET['designation_courte'];$designation=$_GET['designation'];$couleur=$_GET['couleur'];$taille=$_GET['taille'];$etat_liste=$_GET['etat_liste'];$connection=db_connect($host,$db,$username,$password);$criteres="";if (isset($liste)):	$criteres=" $criteres and a.liste=$liste ";endif;if ((isset($marque))&&($marque!="")):	$criteres=" $criteres and a.marque=$marque ";endif;if ((isset($type))&&($type!="")):	$criteres=" $criteres and a.type=$type ";endif;if ((isset($designation_courte))&&($designation_courte!="")):	$criteres=" $criteres and a.designation_courte=$designation_courte ";endif;if ((isset($designation))&&($designation!="")):	$criteres=" $criteres and a.designation like '%$designation%' ";endif;if ((isset($couleur))&&($couleur!="")):	$criteres="$criteres and a.couleur=$couleur";endif;if ((isset($taille))&&($taille!="")):	$criteres="$criteres and a.taille=$taille";endif;if ((isset($etat_liste))&&($etat_liste!="")):	$criteres="$criteres and l.etat=$etat_liste";endif;  $query="select count(*) as compte  from pm_articles as a, pm_types as ty, pm_tailles as ta, pm_designations_courtes as d, pm_couleurs as c, pm_marques as m, pm_etat_articles as e, pm_liste_articles as l   where a.taille=ta.id and a.type=ty.id and a.designation_courte=d.id and a.couleur=c.id and a.marque=m.id and e.id=a.etat  and l.id=a.liste  $criteres  order by a.id";  $result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		$compte=$ligne['compte'];	}  if ($compte < 2000):  echo "<h1 class=\"title2\">Resultat de recherche </h1><h3>Resultat</h3>$msg";	$counter=0;	$bgcolor="#FFFFFF";	echo "<table class=sample>	<tr bgcolor=#FFFFBB>	<td> Liste </td>	<td> N� </td>	<td> d�signation</td>	<td> designation longue</td>	<td> couleur </td> 	<td> marque </td> 	<td> type </td>	<td> taille </td>	<td> prix </td>	<td> net vendeur </td>	<td> etat </td>	</tr>";/*	$query="select a.id as id,a.numero as numero, a.designation as designation, a.prix as prix, a.prix_vendeur as prix_vendeur, ty.type as type, ta.taille as taille, e.etat as etat_libelle, e.id as etat 	from pm_articles as a, pm_types as ty, pm_tailles as ta, pm_etat_articles as e   where a.liste=$liste and a.taille=ta.id and a.type=ty.id and e.id=a.etat	order by numero";*/		$query="select   a.liste as liste,  a.id as id,a.numero as numero, a.designation as designation, a.prix as prix, a.prix_vendeur as prix_vendeur,   e.etat as etat_libelle, e.id as etat,   ty.type as type, ty.image as type_image,  ta.taille as taille, 	d.libelle as designation_courte,   c.libelle as couleur,  m.libelle as marque     from pm_articles as a, pm_types as ty, pm_tailles as ta, pm_designations_courtes as d, pm_couleurs as c, pm_marques as m, pm_etat_articles as e, pm_liste_articles as l    where a.taille=ta.id and a.type=ty.id and a.designation_courte=d.id and a.couleur=c.id and a.marque=m.id and e.id=a.etat  and l.id=a.liste  $criteres  order by a.id";		  $result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		$id=$ligne['id'];		$liste=$ligne['liste'];		$numero=$ligne['numero'];		$designation=$ligne['designation'];		$designation_text=text2js($ligne['designation']);		$type=$ligne['type'];					$type_image=$ligne['type_image'];				$taille=$ligne['taille'];		$prix=$ligne['prix'];		$prix_vendeur=$ligne['prix_vendeur'];    $etat_libelle=$ligne['etat_libelle'];    $etat=$ligne['etat'];    $designation_courte=$ligne['designation_courte'];		$couleur=$ligne['couleur'];		$marque=$ligne['marque'];        if ($etat==1):    {      $color_etat="AAFFAA";    }    elseif ($etat==2):    {      $color_etat="FF0000";    }    elseif ($etat==3):    {      $color_etat="AAAAFF";    }    endif;  		echo "<tr bgcolor=$bgcolor>		<td> <a href=depot_articles.php?liste=$liste style=\"text-decoration:none ;\">$liste</a> </td>		<td> $numero  </td>		<td> $designation_courte </td>		<td> $designation  </td>		<td> $couleur</td>    <td> $marque</td>		<td><img src=\"$type_image\"></td>		<td> $taille  </td> 		<td> $prix  �</td>		<td> $prix_vendeur �</td>		<td bgcolor=$color_etat> $etat_libelle</td>";	/*	<td> <a href=modifier_article.php?id_article=$id><img src=images/edit.png></a></td>				<td>     <form name=supprimer_$id id=supprimer_$id method=post action=depot_articles.php>    <input type=hidden name=id_article value=$id>    <input type=hidden name=liste value=$liste>    </form>    <a href=# onclick='confirmation_post($liste,$id,\" $designation_text\",\"supprimer_$id\")' ><img src=images/delete.png></a>    </td>    */	echo"    </tr>";				$counter++;		if (($counter%2) == 0):			$bgcolor="#FFFFFF";		else:			$bgcolor="#EEEEEE";				endif;			}		echo "</table>";	echo "$counter Articles correspondant aux crit�res";else:	echo " <br><h3> $compte articles correspondants	<br>	Le nombre d'articles est trop important pour ces crit�res</h3>";endif;?></div></div>	<div style="clear: both;">&nbsp;</div></div><?php include("footer.php");  ?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<SCRIPT>
+
+function confirmation_post(liste,id,designation,formulaire) { 
+var msg = ' Confirmer la suppression de : '+designation; 
+if (confirm(msg)) {
+    document.getElementById(formulaire).submit(); 
+  }
+  else
+  {
+  document.location.replace('depot_articles.php?liste='+liste);   
+  }
+} 
+
+</SCRIPT>
+
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>
+		
+<div class="boxed">
+			
+<!-- <h3>Caisse</h3> -->
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$liste = $_GET['liste'] ?? null;
+$marque = $_GET['marque'] ?? null;
+$type = $_GET['type'] ?? null;
+$designation_courte = $_GET['designation_courte'] ?? null;
+$designation = $_GET['designation'] ?? null;
+$couleur = $_GET['couleur'] ?? null;
+$taille = $_GET['taille'] ?? null;
+$etat_liste = $_GET['etat_liste'] ?? null;
+
+$connection = db_connect($host, $port, $db, $username, $password);
+
+$criteres = "";
+$params = [];
+
+if ($liste !== null) {
+    $criteres .= " AND a.liste = ?";
+    $params[] = $liste;
+}
+if (!empty($marque)) {
+    $criteres .= " AND a.marque = ?";
+    $params[] = $marque;
+}
+if (!empty($type)) {
+    $criteres .= " AND a.type = ?";
+    $params[] = $type;
+}
+if (!empty($designation_courte)) {
+    $criteres .= " AND a.designation_courte = ?";
+    $params[] = $designation_courte;
+}
+if (!empty($designation)) {
+    $criteres .= " AND a.designation LIKE ?";
+    $params[] = "%$designation%";
+}
+if (!empty($couleur)) {
+    $criteres .= " AND a.couleur = ?";
+    $params[] = $couleur;
+}
+if (!empty($taille)) {
+    $criteres .= " AND a.taille = ?";
+    $params[] = $taille;
+}
+if (!empty($etat_liste)) {
+    $criteres .= " AND l.etat = ?";
+    $params[] = $etat_liste;
+}
+
+$query = "SELECT COUNT(*) as compte FROM pm_articles as a 
+          JOIN pm_types as ty ON a.type = ty.id
+          JOIN pm_tailles as ta ON a.taille = ta.id
+          JOIN pm_designations_courtes as d ON a.designation_courte = d.id
+          JOIN pm_couleurs as c ON a.couleur = c.id
+          JOIN pm_marques as m ON a.marque = m.id
+          JOIN pm_etat_articles as e ON e.id = a.etat
+          JOIN pm_liste_articles as l ON l.id = a.liste
+          WHERE 1=1 $criteres";
+
+try {
+    $stmt = $connection->prepare($query);
+    $stmt->execute($params);
+    $compte = $stmt->fetch(PDO::FETCH_ASSOC)['compte'];
+
+    if ($compte < 2000) {
+        echo "<h1 class=\"title2\">Résultat de recherche </h1><h3>Résultat</h3>";
+
+        $query = "SELECT a.liste, a.id, a.numero, a.designation, a.prix, a.prix_vendeur, e.etat as etat_libelle, e.id as etat, ty.type, ty.image as type_image, ta.taille, d.libelle as designation_courte, c.libelle as couleur, m.libelle as marque
+                  FROM pm_articles as a
+                  JOIN pm_types as ty ON a.type = ty.id
+                  JOIN pm_tailles as ta ON a.taille = ta.id
+                  JOIN pm_designations_courtes as d ON a.designation_courte = d.id
+                  JOIN pm_couleurs as c ON a.couleur = c.id
+                  JOIN pm_marques as m ON a.marque = m.id
+                  JOIN pm_etat_articles as e ON e.id = a.etat
+                  JOIN pm_liste_articles as l ON l.id = a.liste
+                  WHERE 1=1 $criteres ORDER BY a.id";
+        
+        $stmt = $connection->prepare($query);
+        $stmt->execute($params);
+
+        echo "<table class=sample>
+                <tr bgcolor=#FFFFBB>
+                    <td>Liste</td><td>N°</td><td>Désignation</td><td>Désignation longue</td><td>Couleur</td>
+                    <td>Marque</td><td>Type</td><td>Taille</td><td>Prix</td><td>Net vendeur</td><td>État</td>
+                </tr>";
+
+        $bgcolor = "#FFFFFF";
+        while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $color_etat = match ($ligne['etat']) {
+                1 => "AAFFAA",
+                2 => "FF0000",
+                3 => "AAAAFF",
+                default => "FFFFFF",
+            };
+
+            echo "<tr bgcolor=$bgcolor>
+                    <td><a href=depot_articles.php?liste={$ligne['liste']} style='text-decoration:none;'>{$ligne['liste']}</a></td>
+                    <td>{$ligne['numero']}</td>
+                    <td>{$ligne['designation_courte']}</td>
+                    <td>{$ligne['designation']}</td>
+                    <td>{$ligne['couleur']}</td>
+                    <td>{$ligne['marque']}</td>
+                    <td><img src='{$ligne['type_image']}'></td>
+                    <td>{$ligne['taille']}</td>
+                    <td>{$ligne['prix']} €</td>
+                    <td>{$ligne['prix_vendeur']} €</td>
+                    <td bgcolor=$color_etat>{$ligne['etat_libelle']}</td>
+                </tr>";
+
+            $bgcolor = ($bgcolor == "#FFFFFF") ? "#EEEEEE" : "#FFFFFF";
+        }
+        echo "</table>$compte Articles correspondant aux critères";
+    } else {
+        echo "<br><h3>$compte articles correspondants<br>Le nombre d'articles est trop important pour ces critères</h3>";
+    }
+} catch (PDOException $e) {
+    error_log("Erreur SQL : " . $e->getMessage());
+    echo "<p>Une erreur est survenue lors de l'exécution de la requête.</p>";
+}
+?>
+
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+
+<?php include("footer.php");  ?>
+
+
+</body>
+</html>

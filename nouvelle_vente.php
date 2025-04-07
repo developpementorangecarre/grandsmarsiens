@@ -31,113 +31,135 @@
 include("functions.inc.php");
 include("conf.inc.php");
 
-$connection=db_connect($host,$db,$username,$password);
-
-$posted=$_POST['posted'];
-$create=$_POST['create'];
-$nb_vente=0;
-$client=$_POST['client'];
-//echo "<h1>posted $posted</h1>";
-//echo "<h1>create $create</h1>";
+$connection=db_connect($host,$port,$db,$username,$password);
 
 
-	if ((isset($posted))and($posted==1)):
+$nb_vente = 0;
+$client = $_POST['client'] ?? null;
+$posted = $_POST['posted'] ?? null;
+$create = $_POST['create'] ?? null;
 
-	$query="select count(*) from pm_ventes where client=$client";
-	//echo $query;
-	$result=exec_sql($query,$connection);
-	while ($ligne=fetch_row($result))
-	{
-		$nb_vente=$ligne[0];
-		//echo "nombre de listes : $nb_liste";
+if ($posted == 1) {
+    try {
+        // Compter le nombre de ventes pour ce client
+        $query = "SELECT count(*) FROM pm_ventes WHERE client = :client";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+        $stmt->execute();
 
-// On teste si la personne n'a pas d�j� une vente. 
-// Si aucune liste existe on cr�e une liste et on ouvre une page de saise d'articles 
+        $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
+        $nb_vente = $ligne ? $ligne['count(*)'] : 0;
+        echo "-- > $nb_vente $client<HR>";
 
-  echo "-- > $nb_vente $client<HR>";
-		if ($nb_vente<1):
-			echo "initilatisation de la vente...";		
-			$query="insert into pm_ventes values(NULL,$client,NULL,1,NULL) ";
-			$result=exec_sql($query,$connection);
-			
-			$query="select id from pm_ventes where client=$client ";
-			$result=exec_sql($query,$connection);
-			while ($ligne=fetch_row($result))
-			{
-				$vente=$ligne[0];
-			}
-			
-			ouvre_page("vente_article.php?vente=$vente");
-		endif;
-	}	
-	
-	$query="select id from pm_ventes where client=$client order by id ";
-	echo "Listes des ventes � ce client ($client) : ";
-	$result=exec_sql($query,$connection);
-	while ($ligne=fetch_row($result))
-	{
-		$vente=$ligne[0];
-		echo " <form method=post action=vente_article.php>";
-		echo " <li> <a href=voir_vente.php?vente=$vente target=_blank>Voir la liste $vente </a>";
-		echo " <input type=submit name=envoyer value=\" Ajouter des articles � la vente $vente \"></center><br>";
-		echo " <input type=hidden name=vente value=$vente><br>";
-		echo " <input type=hidden name=posted value=1><br>	</form>";
-		
-	}
-	echo "<hr>";
-	echo "
-	<form method=post action=creer_vente.php>
-	<input type=hidden name=posted value=2>
-	<input type=hidden name=create value=4>
-	<input type=hidden name=client value=$client><br>
-	<center><input type=submit name=envoyer value=\"              CREER UNE NOUVELLE VENTE            \"></center><br>
-	</form>
-	";
-	
-elseif ((isset($create))and($create=4)):
-			echo "initilatisation de la vente...";		
-			$query="insert into pm_ventes values(NULL,$client,NULL,1,NULL) ";
-			$result=exec_sql($query,$connection);
-			
-			$query="select id from pm_ventes where client=$client ";
-			$result=exec_sql($query,$connection);
-			while ($ligne=fetch_row($result))
-			{
-				$vente=$ligne[0];
-			}
-			
-			ouvre_page("vente_article.php?vente=$vente");
-else:
+        if ($nb_vente < 1) {
+            echo "initialisation de la vente...";
 
-//****************** Formulaire principal ***/
+            // Ajouter la nouvelle vente avec la date actuelle
+            $date = date('Y-m-d H:i:s'); // Récupère la date et l'heure actuelles
+            $query = "INSERT INTO pm_ventes (client, date) VALUES (:client, :date)";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+            $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+            $stmt->execute();
 
-	echo "<h1 class=\"title2\">Cr&eacute;er une nouvelle vente</h1>
-	<h3>Vente de $client</h3>
-	<form method=post action=nouvelle_vente.php>
-	";
-	echo "<hr>";
-	echo "Client : <select name=client>";
-	$query="select id,nom,prenom from pm_personnes order by nom asc";
-	$result=exec_sql($query,$connection);
-	while ($ligne=fetch_row($result))
-	{
-		$id=$ligne[0];
-		$nom=$ligne['nom'];
-		$prenom=$ligne['prenom'];
-		echo "<option value=$id>$nom $prenom</option>";
-	}
-	echo "</select>
-  ";
+            // Récupérer l'ID de la vente
+            $query = "SELECT id FROM pm_ventes WHERE client = :client";
+            $stmt = $connection->prepare($query);
+            $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+            $stmt->execute();
 
-	echo "<hr>";
-	echo "
-	<center><input type=submit name=envoyer value=\"              ENVOYER            \"></center><br>
-	<input type=hidden name=posted value=1><br>
-	</form>
-	";
+            $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
+            $vente = $ligne ? $ligne['id'] : null;
 
-endif;
+            if ($vente) {
+                ouvre_page("vente_article.php?vente=$vente");
+            }
+        }
 
+        // Liste des ventes à ce client
+        $query = "SELECT id FROM pm_ventes WHERE client = :client ORDER BY id";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+        $stmt->execute();
+
+        echo "Listes des ventes à ce client ($client) : ";
+
+        while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $vente = $ligne['id'];
+            echo "<form method='post' action='vente_article.php'>";
+            echo "<li><a href='voir_vente.php?vente=$vente' target='_blank'>Voir la liste $vente</a>";
+            echo "<input type='submit' name='envoyer' value='Ajouter des articles à la vente $vente'></center><br>";
+            echo "<input type='hidden' name='vente' value='$vente'><br>";
+            echo "<input type='hidden' name='posted' value='1'><br></form>";
+        }
+
+        echo "<hr>";
+        echo "
+        <form method='post' action='creer_vente.php'>
+        <input type='hidden' name='posted' value='2'>
+        <input type='hidden' name='create' value='4'>
+        <input type='hidden' name='client' value='$client'><br>
+        <center><input type='submit' name='envoyer' value='CREER UNE NOUVELLE VENTE'></center><br>
+        </form>
+        ";
+    } catch (PDOException $e) {
+        echo "Erreur de base de données : " . htmlspecialchars($e->getMessage());
+    }
+} elseif ($create == 4) {
+    try {
+        echo "initialisation de la vente...";
+
+        // Ajouter la nouvelle vente avec la date actuelle
+        $date = date('Y-m-d H:i:s'); // Récupère la date et l'heure actuelles
+        $query = "INSERT INTO pm_ventes (client, date) VALUES (:client, :date)";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+        $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+        $stmt->execute();
+
+        // Récupérer l'ID de la vente
+        $query = "SELECT id FROM pm_ventes WHERE client = :client";
+        $stmt = $connection->prepare($query);
+        $stmt->bindParam(':client', $client, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $ligne = $stmt->fetch(PDO::FETCH_ASSOC);
+        $vente = $ligne ? $ligne['id'] : null;
+
+        if ($vente) {
+            ouvre_page("vente_article.php?vente=$vente");
+        }
+    } catch (PDOException $e) {
+        echo "Erreur de base de données : " . htmlspecialchars($e->getMessage());
+    }
+} else {
+    // Formulaire principal de création de vente
+    echo "<h1 class='title2'>Créer une nouvelle vente</h1>";
+    echo "<h3>Vente de " . htmlspecialchars($client ?? '', ENT_QUOTES, 'UTF-8') . "</h3>";
+    echo "<form method='post' action='nouvelle_vente.php'>";
+    echo "<hr>";
+    echo "Client : <select name='client'>";
+
+    try {
+        $query = "SELECT id, nom, prenom FROM pm_personnes ORDER BY nom ASC";
+        $stmt = $connection->prepare($query);
+        $stmt->execute();
+
+        while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $id = $ligne['id'];
+            $nom = htmlspecialchars($ligne['nom'], ENT_QUOTES, 'UTF-8');
+            $prenom = htmlspecialchars($ligne['prenom'], ENT_QUOTES, 'UTF-8');
+            echo "<option value='$id'>$nom $prenom</option>";
+        }
+    } catch (PDOException $e) {
+        echo "Erreur de base de données : " . htmlspecialchars($e->getMessage());
+    }
+
+    echo "</select><hr>";
+    echo "<center><input type='submit' name='envoyer' value='ENVOYER'></center><br>";
+    echo "<input type='hidden' name='posted' value='1'><br>";
+    echo "</form>";
+}
 
 
 ?>

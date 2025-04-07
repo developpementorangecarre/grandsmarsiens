@@ -22,18 +22,42 @@ function popUp(URL)
 
 include("functions.inc.php");
 include("conf.inc.php");
-$connection=db_connect($host,$db,$username,$password);
+$connection=db_connect($host,$port,$db,$username,$password);
 
 $liste_depots="a.liste=0";
+$message = "";
 
-$bar=$_POST['bar'];
-foreach ($bar as $value)
-{
-  $liste_depots="$liste_depots OR a.liste=$value";
+if (!empty($_POST['bar']) && is_array($_POST['bar'])) {
+    $conditions = [];
+    
+    foreach ($_POST['bar'] as $value) {
+        $conditions[] = "a.liste=" . (int) $value; 
+    }
+
+    if (!empty($conditions)) {
+        $liste_depots = implode(" OR ", $conditions);
+    }
+}else{
+	$message = "
+		<div style='
+			display: flex; 
+			justify-content: center; 
+			align-items: center; 
+			height: 100vh; 
+			width: 100%; 
+			text-align: center;
+		'>
+			<p style='font-weight: bold; font-size: 1.25em; margin: 0;'>
+				Aucune liste n'a été cochée.
+			</p>
+		</div>";
 }
 
+if (empty($liste_depots)) {
+    $liste_depots = "1=1"; // Condition toujours vraie pour ne pas fausser la requête
+}
 
-
+echo $message;
 
 $query="
 select a.id,a.designation,a.liste,a.numero,a.prix,t.taille,
@@ -56,89 +80,88 @@ $result=exec_sql($query,$connection);
 
 //----------------------
 
+$hauteur_init = 96;
+$hauteur_last = 92;
+$hauteur = $hauteur_init;
+$espace = 0;
+$padding = 0;
+$nombre_planche = 40;
 
-$hauteur_init=96;
-$hauteur_last=92;
-$hauteur=$hauteur_init;
-$espace=0;
-$padding=0;
-$nombre_planche=40;
+$table_style = "<table border=0 width=100% align=center cellspacing=$espace cellpadding=$padding style=\"border-collapse: collapse\">";
 
-$table_style="<table border=0 width=100% align=center cellspacing=$espace cellpadding=$padding style=\"border-collapse: collapse\">";
-//-------------
-echo "$table_style
-<tr>";
+// Affichage du début du tableau
+echo "$table_style<tr>";
 
-$counter=0;
-$page_saut=0;
-$separateur='a';
-while($row=fetch_row($result))
-{
-  $designation=$row['designation'];
-  $liste=$row['liste'];
-  $vendeur=$row['vendeur'];
-  $numero=$row['numero'];
-  $prix=$row['prix'];
-  $taille=$row['taille'];
-  $designation_courte=$row['designation_courte'];
-	$couleur=$row['couleur'];
-	$marque=$row['marque'];
-	
-  if($counter%4==0)
-	{
-		echo '</tr><tr>';
-	}
+$counter = 0;
+$saut_page = 0;
+$separateur = 'a';
 
-	//echo "<td align='center'><img src='../classes/barcode.php?barcode=$row[$generateWith]&width=206&height=75&text=*$row[id]* ( $row[supplier_id])'><br> $row[item_name] <br> Taille : $taille <b>Prix : $row[total_cost] �</b></td>";
-	$bourse=liste2bourse($liste,$connection);
-	$code=liste2code($liste,$connection);
+try {
+    while ($row = fetch_row($result)) {
+        // Vérifier l'existence des clés pour éviter les erreurs
+        $designation = $row['designation'] ?? '';
+        $liste = $row['liste'] ?? '';
+        $vendeur = $row['vendeur'] ?? '';
+        $numero = $row['numero'] ?? '';
+        $prix = $row['prix'] ?? 0;
+        $taille = $row['taille'] ?? '';
+        $designation_courte = $row['designation_courte'] ?? '';
+        $couleur = $row['couleur'] ?? '';
+        $marque = $row['marque'] ?? '';
 
-	echo "<td align='center' width=25% height=$hauteur valign=top>
-      <table border=0 width=100%>
-	  <tr>
-	  <td colspan=2 align=center><font size=2>$designation_courte $couleur /$taille <br>$marque<td></font>
-	  </tr>
-	  <tr>
-      <td colspan=2 align=center><font size=3>$code $bourse $numero</font></td>
-	  </tr>
-	  <tr>
-	  <td align=center>
-	  <b></b>
-	  </td>
-	  <td align=center>
-      </font><font size=5><b> $prix �  </b></font>
-	  </td>
-	  </tr>
-	  </table>
-      </td>";
+        if ($counter % 4 == 0) {
+            echo '</tr><tr>';
+        }
 
-	
-	$counter++;
-	$saut_page++;
-	if($counter%36==0)
-	{
-		echo '</tr><tr>';
-	}
+        try {
+            $bourse = liste2bourse($liste, $connection);
+            $code = liste2code($liste, $connection);
+        } catch (Exception $e) {
+            $bourse = "Erreur";
+            $code = "Erreur";
+        }
 
-  if($saut_page>=36)
-  {
-    $hauteur=$hauteur_last;
-  }
+        echo "<td align='center' width=25% height=$hauteur valign=top>
+                <table border=0 width=100%>
+                    <tr>
+                        <td colspan=2 align=center><font size=2>$designation_courte $couleur / $taille <br>$marque</font></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2 align=center><font size=3>$code $bourse $numero</font></td>
+                    </tr>
+                    <tr>
+                        <td align=center></td>
+                        <td align=center>
+                            <font size=5><b> $prix €  </b></font>
+                        </td>
+                    </tr>
+                </table>
+              </td>";
 
-  if($saut_page%$nombre_planche==0)
-	{
-		echo "</tr></table>";
-		
-		echo "<P style=\"page-break-before: always\">";
-		echo "$table_style<tr>";
-		$saut_page=0;
-		$hauteur=$hauteur_init;
-	}
-	
+        $counter++;
+        $saut_page++;
+
+        if ($counter % 36 == 0) {
+            echo '</tr><tr>';
+        }
+
+        if ($saut_page >= 36) {
+            $hauteur = $hauteur_last;
+        }
+
+        if ($saut_page % $nombre_planche == 0) {
+            echo "</tr></table>";
+            echo "<P style=\"page-break-before: always\">";
+            echo "$table_style<tr>";
+            $saut_page = 0;
+            $hauteur = $hauteur_init;
+        }
+    }
+} catch (Exception $e) {
+    echo "<p class='error'>Erreur : " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "</p>";
 }
 
 echo '</tr></table>';
-
 
 ?>
 <SCRIPT Language="Javascript">

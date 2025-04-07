@@ -31,7 +31,7 @@
 include("functions.inc.php");
 include("conf.inc.php");
 
-$connection=db_connect($host,$db,$username,$password);
+$connection=db_connect($host,$port,$db,$username,$password);
 
 echo "
 <form method=GET action=liste_personne.php>
@@ -62,7 +62,7 @@ echo "
 <form method=GET action=liste_personne.php>
 <table>
 <tr>
-<td width=200 align=right>Par le numéro </td><td> <input type=text name=id></td>
+<td width=200 align=right>Par le numÃ©ro </td><td> <input type=text name=id></td>
 </tr>
 <tr><td colspan=2>
 <input type=submit value=\"RECHERCHER par le NUMERO\">

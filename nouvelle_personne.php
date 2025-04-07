@@ -1,1 +1,184 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" /></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>		<div class="boxed">			<!-- <h3>Caisse</h3> --><?phpinclude("functions.inc.php");include("conf.inc.php");$connection=db_connect($host,$db,$username,$password);$posted=$_POST['posted'];if (isset($posted)):	$nom=text2sql($_POST['nom']);	$prenom=text2sql($_POST['prenom']);	$adresse=text2sql($_POST['adresse']);	$ville=text2sql($_POST['ville']);	$tel=text2sql($_POST['tel']);	$email=text2sql($_POST['email']);	$categorie=$_POST['categorie'];		$query="select count(*) from pm_personnes 		where 		nom='$nom' and 		prenom='$prenom' and		adresse='$adresse' and		ville='$ville' and		email='$email' and		tel='$tel'		" ;	$result=exec_sql($query,$connection);				while ($ligne=fetch_row($result))	{		$compte=$ligne[0];	}			if ($compte <1 ):		$query="insert into pm_personnes values (NULL, '$nom', '$prenom', '$adresse', '$ville', '$tel','$email',$categorie)";		exec_sql($query,$connection);		echo "<h1 class=\"title2\">Nouvelle personne cr&eacute;&eacute;e !!</h1>";		else:		echo "<h1 class=\"title2\">cette personne existe dÈj‡ !!</h1>";		endif;		$query="select * from pm_personnes 			where 			nom='$nom' and 			prenom='$prenom' and			adresse='$adresse' and			ville='$ville' and			email='$email' and			tel='$tel'			order by id asc " ;				$result=exec_sql($query,$connection);			while ($ligne=fetch_row($result))		{			$id=$ligne[0];			$nom=$ligne[1];			$prenom=$ligne[2];			$adresse=$ligne[3];			$ville=$ligne[4];			$tel=$ligne[5];			$email=$ligne[6];			echo "<h3>Num&eacute;ro $id </h3><br>";			echo "<h4><table class=sample><tr><td>NOM : $nom    </td><td>PRENOM : $prenom </td></tr>";			echo "<tr><td colspan=2>ADRESSE : $adresse </td></tr>";			echo "<tr><td colspan=2>VILLE : $ville </td></tr>";			echo "<tr><td>EMAIL : $email ";			echo "</td><td>TEL : $tel </td></tr></table></h4>";		}		echo "	<form method=post action=creer_liste.php>";		echo "<center>code bourse : <select name=bourse>";	$query="select id,statut from pm_bourses order by id asc";	$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		$codebourse=$ligne['id'];		$statut=$ligne['statut'];		if ( $statut == 1 ):			echo "<option value=$codebourse selected>$codebourse</option>";		else:			echo "<option value=$codebourse>$codebourse</option>";		endif;	}	echo "</select>";	echo"	<input type=hidden name=posted value=2>	<input type=hidden name=create value=4>	<input type=hidden name=vendeur value=$id>	<input type=submit name=envoyer value=\"              CREER UNE NOUVELLE LISTE            \"></center><br>	</form>	";/*-----	echo "	<form method=post action=nouvelle_liste.php>	";		echo "<input type=hidden name=vendeur value=$id>";	echo "	<center><input type=submit name=envoyer value=\"              VENDEUR : DEPOT d'ARTICLES            \"></center><br>	<input type=hidden name=posted value=1><br>	</form>";	---*/	echo "	<form method=post action=nouvelle_vente.php>	";		echo "<input type=hidden name=client value=$id>";	echo "	<center><input type=submit name=envoyer value=\"              CLIENT : NOUVELLE VENTE             \"></center><br>	<input type=hidden name=posted value=1><br>	</form>";		echo "	L'association Les P'tits Marsiens dispose de moyens informatiques destinÈs ‡ gÈrer plus facilement les ventes et les dÈpÙts d'articles.	<br>	Les informations enregistrÈes sont rÈservÈes ‡ líusage de l'association et ne peuvent Ítre communiquÈes quíaux adhÈrents assurant la gestion de l'assocation.	<br>	ConformÈment aux articles 39 et suivants de la loi n∞ 78-17 du 6 janvier 1978 relative ‡ líinformatique, aux fichiers et aux libertÈs, toute personne peut obtenir communication et, le cas ÈchÈant, rectification ou suppression des informations la concernant, en síadressant par courrier ou par e-mail ‡ l'association.	<br>	";	else:echo "<h1 class=\"title2\">Cr&eacute;er une nouvelle personne</h1><form method=post action=nouvelle_personne.php><table><tr><td>Nom : </td><td><input type=texte size=80 name=nom></td></tr><tr><td>Prenom : </td><td><input type=texte size=80 name=prenom></td></tr><tr><td>Adresse : </td><td><textarea cols=63 rows=2 name=adresse> </textarea></td></tr><tr><td>Ville : </td><td><input type=texte size=80 name=ville value=\"Saint Mars du D&eacute;sert\"></td></tr><tr><td>Telephone : </td><td><input type=texte size=80 name=tel></td></tr><tr><td>Email : </td><td><input type=texte size=80 name=email></td></tr>";echo "<tr><td>categorie : </td><td><select name=categorie>";$query="select id, categorie from pm_categories order by id asc";$result=exec_sql($query,$connection);while ($ligne=fetch_row($result)){	$id=$ligne[0];	$categorie=$ligne[1];	echo "<option value=$id>$categorie</option>";}echo "</select></td></tr>";echo "</table><center><input type=submit name=envoyer value=\"              ENVOYER            \"></center><br><input type=hidden name=posted value=1><br></form>";endif;echo "<HR>";?></div></div>	<div style="clear: both;">&nbsp;</div></div><?php include("footer.php"); ?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>
+		
+<div class="boxed">
+			
+<!-- <h3>Caisse</h3> -->
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$pdo=db_connect($host,$port,$db,$username,$password);
+
+$posted=$_POST['posted'] ?? null;
+
+if (!empty($_POST['posted'])) {
+    try {
+        // Nettoyage des entr√©es avec text2sql()
+        $nom = text2sql($_POST['nom']);
+        $prenom = text2sql($_POST['prenom']);
+        $adresse = text2sql($_POST['adresse']);
+        $ville = text2sql($_POST['ville']);
+        $tel = text2sql($_POST['tel']);
+        $email = text2sql($_POST['email']);
+        $categorie = $_POST['categorie'];
+
+        // V√©rification si la personne existe d√©j√†
+        $query = "SELECT COUNT(*) FROM pm_personnes 
+                  WHERE nom = ? AND prenom = ? AND adresse = ? AND ville = ? 
+                  AND email = ? AND tel = ?";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$nom, $prenom, $adresse, $ville, $email, $tel]);
+        $compte = $stmt->fetchColumn();
+
+        if ($compte < 1) {
+            // Ins√©rer la nouvelle personne
+            $query = "INSERT INTO pm_personnes (nom, prenom, adresse, ville, tel, email, categorie) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$nom, $prenom, $adresse, $ville, $tel, $email, $categorie]);
+
+            echo "<h1 class=\"title2\">Nouvelle personne cr√©√©e !!</h1>";
+        } else {
+            echo "<h1 class=\"title2\">Cette personne existe d√©j√† !!</h1>";
+        }
+
+        // R√©cup√©rer les informations de la personne
+        $query = "SELECT id, nom, prenom, adresse, ville, tel, email 
+                  FROM pm_personnes 
+                  WHERE nom = ? AND prenom = ? AND adresse = ? AND ville = ? 
+                  AND email = ? AND tel = ? 
+                  ORDER BY id ASC";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$nom, $prenom, $adresse, $ville, $email, $tel]);
+
+        while ($ligne = $stmt->fetch()) {
+            echo "<h3>Num√©ro " . htmlspecialchars($ligne['id']) . "</h3><br>";
+            echo "<h4>
+                    <table class=\"sample\">
+                        <tr><td>NOM : " . htmlspecialchars($ligne['nom']) . "</td>
+                            <td>PR√âNOM : " . htmlspecialchars($ligne['prenom']) . "</td>
+                        </tr>
+                        <tr><td colspan=\"2\">ADRESSE : " . htmlspecialchars($ligne['adresse']) . "</td></tr>
+                        <tr><td colspan=\"2\">VILLE : " . htmlspecialchars($ligne['ville']) . "</td></tr>
+                        <tr><td>EMAIL : " . htmlspecialchars($ligne['email']) . "</td>
+                            <td>T√âL : " . htmlspecialchars($ligne['tel']) . "</td>
+                        </tr>
+                    </table>
+                  </h4>";
+        }
+
+        // S√©lection du code bourse
+        echo '<form method="post" action="creer_liste.php">
+                <center>
+                    Code bourse : <select name="bourse">';
+        
+        $query = "SELECT id, statut FROM pm_bourses ORDER BY id ASC";
+        $stmt = $pdo->query($query);
+        
+        while ($ligne = $stmt->fetch()) {
+            $codebourse = htmlspecialchars($ligne['id']);
+            $selected = ($ligne['statut'] == 1) ? 'selected' : '';
+            echo "<option value=\"$codebourse\" $selected>$codebourse</option>";
+        }
+
+        echo '</select>
+                <input type="hidden" name="posted" value="2">
+                <input type="hidden" name="create" value="4">
+                <input type="hidden" name="vendeur" value="' . htmlspecialchars($id) . '">
+                <br><br>
+                <input type="submit" name="envoyer" value="CR√âER UNE NOUVELLE LISTE">
+              </center>
+              </form>
+              <br>
+              <form method="post" action="nouvelle_vente.php">
+                <input type="hidden" name="client" value="' . htmlspecialchars($id) . '">
+                <center><input type="submit" name="envoyer" value="CLIENT : NOUVELLE VENTE"></center>
+              </form>
+              <br>
+              <p>
+                L\'association <strong>Les P\'tits Marsiens</strong> dispose de moyens informatiques destin√©s √† g√©rer plus facilement les ventes et les d√©p√¥ts d\'articles.
+              </p>
+              <p>
+                Les informations enregistr√©es sont r√©serv√©es √† l\'usage de l\'association et ne peuvent √™tre communiqu√©es qu\'aux adh√©rents assurant la gestion de l\'association.
+              </p>
+              <p>
+                Conform√©ment aux articles 39 et suivants de la loi n¬∞ 78-17 du 6 janvier 1978 relative √† l\'informatique, aux fichiers et aux libert√©s, toute personne peut obtenir communication et, le cas √©ch√©ant, rectification ou suppression des informations la concernant, en s\'adressant par courrier ou par e-mail √† l\'association.
+              </p>';
+
+    } catch (PDOException $e) {
+        echo "<h1 class='title2'>Erreur lors de l'ex√©cution de la requ√™te.</h1>";
+        echo "<p class='error'>D√©tails : " . htmlspecialchars($e->getMessage()) . "</p>";
+    }
+} else {
+    echo '
+    <h1 class="title2">Cr√©er une nouvelle personne</h1>
+    <form method="post" action="nouvelle_personne.php">
+        <table>
+            <tr><td><label for="nom">Nom :</label></td>
+                <td><input type="text" size="80" name="nom" id="nom"></td></tr>
+            <tr><td><label for="prenom">Pr√©nom :</label></td>
+                <td><input type="text" size="80" name="prenom" id="prenom"></td></tr>
+            <tr><td><label for="adresse">Adresse :</label></td>
+                <td><textarea cols="63" rows="2" name="adresse" id="adresse"></textarea></td></tr>
+            <tr><td><label for="ville">Ville :</label></td>
+                <td><input type="text" size="80" name="ville" id="ville" value="Saint Mars du D√©sert"></td></tr>
+            <tr><td><label for="tel">T√©l√©phone :</label></td>
+                <td><input type="text" size="80" name="tel" id="tel"></td></tr>
+            <tr><td><label for="email">Email :</label></td>
+                <td><input type="email" size="80" name="email" id="email"></td></tr>
+            <tr><td><label for="categorie">Cat√©gorie :</label></td>
+                <td><select name="categorie" id="categorie">';
+
+    $stmt = $pdo->query("SELECT id, categorie FROM pm_categories ORDER BY id ASC");
+    
+    while ($ligne = $stmt->fetch()) {
+        echo "<option value=\"" . htmlspecialchars($ligne['id']) . "\">" . htmlspecialchars($ligne['categorie']) . "</option>";
+    }
+
+    echo '</select></td></tr>
+        </table>
+        <br>
+        <center><input type="submit" name="envoyer" value="ENVOYER"></center>
+        <input type="hidden" name="posted" value="1">
+    </form>
+    <hr>';
+}
+
+
+?>
+
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+
+<?php include("footer.php"); ?>
+
+
+</body>
+</html>

@@ -1,1 +1,144 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" /></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>		<div class="boxed">			<h1 class="title2">Les listes d'articles </h1><?phpinclude("functions.inc.php");include("conf.inc.php");$connection=db_connect($host,$db,$username,$password);$tri_sql="ORDER BY l.id desc";$bourse_selection=$_GET['bourse_selection'];$tri=$_GET['tri'];if (isset($tri)):  if ($tri == 11):    $tri_sql="ORDER BY l.bourse, l.code asc";  endif;  if ($tri == 12):    $tri_sql="ORDER BY l.bourse, l.code desc";  endif;    if ($tri == 21):    $tri_sql="ORDER BY nombre_articles asc";  endif;  if ($tri == 22):    $tri_sql="ORDER BY nombre_articles desc";  endif;    if ($tri == 31):    $tri_sql="ORDER BY p.id asc";  endif;  if ($tri == 32):    $tri_sql="ORDER BY p.id desc";  endif;    if ($tri == 61):    $tri_sql="ORDER BY p.nom asc";  endif;  if ($tri == 62):    $tri_sql="ORDER BY p.nom desc";  endif;    if ($tri == 81):    $tri_sql="ORDER BY l.etat asc";  endif;  if ($tri == 82):    $tri_sql="ORDER BY l.etat desc";  endif;  else:  $tri_sql="ORDER by l.id desc";endif;if (isset($bourse_selection) and ($bourse_selection<>"")):	$critere="AND l.bourse = '$bourse_selection'";endif;$query="SELECT l.id, p.id, p.prenom, p.nom, p.adresse, p.ville, COUNT( a.id ) as nombre_articles , e.etat, l.code as code, l.bourse as bourseFROM pm_liste_articles AS l, pm_personnes AS p, pm_articles AS a, pm_etat_liste as eWHERE l.vendeur = p.idAND l.id = a.listeAND l.etat = e.id$critereGROUP BY a.liste$tri_sql" ;echo "<table class=sample><td> N° liste <br>(<a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=11>-</a> / <a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=12>+</a>) </td><td> Nb articles <br>(<a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=21>-</a> / <a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=22>+</a>) </td><td> N° vendeur <br>(<a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=31>-</a> / <a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=32>+</a>)</td><td> Prénom </td><td> Nom <br>(<a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=61>-</a> / <a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=62>+</a>)</td><td> Adresse </td><td> Ville </td><td> Etat <br>(<a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=81>-</a> / <a href=liste_listes_articles.php?bourse_selection=$bourse_selection&tri=82>+</a>) </td>"	;		$result=exec_sql($query,$connection);$counter=0;$bgcolor="#FFFFFF";while ($ligne=fetch_row($result)){			$id=$ligne[0];			$vendeur_id=$ligne[1];			$prenom=$ligne[2];			$nom=$ligne[3];			$adresse=$ligne[4];			$ville=$ligne[5];			$nb_articles=$ligne[6];			$etat=$ligne[7];			$code=$ligne['code'];			$bourse=$ligne['bourse'];			//			$query2="select count(*) from pm_articles as a where a.liste=$id  " ;//			$result2=exec_sql($query2,$connection);//			$nb_articles=0;//			while ($ligne2=fetch_row($result2))//			{//				$nb_articles=$ligne2[0];//			}			echo "<tr bgcolor=$bgcolor>			<td><center><a href=depot_articles.php?liste=$id >__ $code $bourse __</a></center></td>			<td> $nb_articles    </td>			<td> $vendeur_id    </td>			<td> $prenom </td>			<td> $nom    </td>			<td> $adresse </td>			<td> $ville </td>			<td> $etat </td>					</tr>";	$counter++;	if (($counter%2) == 0):		$bgcolor="#FFFFFF";	else:		$bgcolor="#EEEEEE";			endif;	}		echo "</table>";echo"<form method=get action=liste_listes_articles.php>	Filtre sur une bourse : <select name=bourse_selection>";		$query="select id,statut from pm_bourses order by id asc";	$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		$id=$ligne['id'];		$statut=$ligne['statut'];		if ( $statut == 1 ):			echo "<option value=$id selected>$id</option>";		else:			echo "<option value=$id>$id</option>";		endif;	}	echo "</select>";echo "<input type=submit name=envoyer value=\"              ENVOYER            \"></form>";?></div></div>	<div style="clear: both;">&nbsp;</div></div><?php include("footer.php"); ?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div><img src="images/banner.jpg" alt="" height="220" width="740" /></div>
+		
+<div class="boxed">
+			
+<h1 class="title2">Les listes d'articles </h1>
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$connection = db_connect($host, $port, $db, $username, $password);
+
+$tri_sql = "ORDER BY l.id DESC";
+
+$bourse_selection = filter_input(INPUT_GET, 'bourse_selection', FILTER_SANITIZE_SPECIAL_CHARS);
+$bourse_selection = ($bourse_selection !== "") ? $bourse_selection : null;
+
+$tri = filter_input(INPUT_GET, 'tri', FILTER_VALIDATE_INT);
+
+if (!is_null($tri)) {
+    switch ($tri) {
+        case 11: $tri_sql = "ORDER BY l.bourse, l.code ASC"; break;
+        case 12: $tri_sql = "ORDER BY l.bourse, l.code DESC"; break;
+        case 21: $tri_sql = "ORDER BY nombre_articles ASC"; break;
+        case 22: $tri_sql = "ORDER BY nombre_articles DESC"; break;
+        case 31: $tri_sql = "ORDER BY p.id ASC"; break;
+        case 32: $tri_sql = "ORDER BY p.id DESC"; break;
+        case 61: $tri_sql = "ORDER BY p.nom ASC"; break;
+        case 62: $tri_sql = "ORDER BY p.nom DESC"; break;
+        case 81: $tri_sql = "ORDER BY l.etat ASC"; break;
+        case 82: $tri_sql = "ORDER BY l.etat DESC"; break;
+    }
+}
+
+$critere = "";
+$params = [];
+
+if (!empty($bourse_selection)) {
+    $critere = "AND l.bourse = :bourse";
+    $params[':bourse'] = $bourse_selection;
+}
+
+$query = "
+SELECT l.id, p.id AS vendeur_id, p.prenom, p.nom, p.adresse, p.ville, COUNT(a.id) AS nombre_articles, e.etat, l.code, l.bourse
+FROM pm_liste_articles AS l
+JOIN pm_personnes AS p ON l.vendeur = p.id
+JOIN pm_articles AS a ON l.id = a.liste
+JOIN pm_etat_liste AS e ON l.etat = e.id
+WHERE 1=1 
+$critere
+GROUP BY a.liste
+$tri_sql
+";
+
+try {
+    $stmt = $connection->prepare($query);
+    $stmt->execute($params);
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Erreur SQL : " . htmlspecialchars($e->getMessage()));
+}
+
+echo "<table class='sample'>
+<tr>
+    <td>NÂ° liste (<a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=11'>-</a> / <a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=12'>+</a>)</td>
+    <td>Nb articles (<a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=21'>-</a> / <a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=22'>+</a>)</td>
+    <td>NÂ° vendeur (<a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=31'>-</a> / <a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=32'>+</a>)</td>
+    <td>PrÃ©nom</td>
+    <td>Nom (<a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=61'>-</a> / <a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=62'>+</a>)</td>
+    <td>Adresse</td>
+    <td>Ville</td>
+    <td>Ã‰tat (<a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=81'>-</a> / <a href='?bourse_selection=" . htmlspecialchars($bourse_selection ?? '') . "&tri=82'>+</a>)</td>
+</tr>";
+
+foreach ($result as $ligne) {
+    echo "<tr>
+    <td><a href='depot_articles.php?liste=" . htmlspecialchars($ligne['id']) . "'>__ " . htmlspecialchars($ligne['code']) . " " . htmlspecialchars($ligne['bourse']) . " __</a></td>
+    <td>" . htmlspecialchars($ligne['nombre_articles']) . "</td>
+    <td>" . htmlspecialchars($ligne['vendeur_id']) . "</td>
+    <td>" . htmlspecialchars($ligne['prenom']) . "</td>
+    <td>" . htmlspecialchars($ligne['nom']) . "</td>
+    <td>" . htmlspecialchars($ligne['adresse']) . "</td>
+    <td>" . htmlspecialchars($ligne['ville']) . "</td>
+    <td>" . htmlspecialchars($ligne['etat']) . "</td>
+    </tr>";
+}
+
+echo "</table>";
+
+echo "<form method='get' action='liste_listes_articles.php'>
+    Filtre sur une bourse : <select name='bourse_selection'>";
+
+$query = "SELECT id, statut FROM pm_bourses ORDER BY id ASC";
+try {
+    $stmt = $connection->query($query);
+    while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id = htmlspecialchars($ligne['id']);
+        $selected = ($bourse_selection === $id) ? "selected" : "";
+        echo "<option value='$id' $selected>$id</option>";
+    }
+} catch (PDOException $e) {
+    die("Erreur SQL : " . htmlspecialchars($e->getMessage()));
+}
+
+echo "</select>
+<input type='submit' name='envoyer' value='ENVOYER'>
+</form>";
+
+?>
+
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+
+<?php include("footer.php"); ?>
+
+
+</body>
+</html>

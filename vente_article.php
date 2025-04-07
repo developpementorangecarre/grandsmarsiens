@@ -1,1 +1,361 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><SCRIPT>var fnOnClick = function(){	if (confirm('Voulez-vous supprimer ?')){		alert('OK');		doc.getEl.sublmit();	}else{//		alert('OK');	}}function confirmation(vente,id,designation) { var msg = 'confirmer la suppression de'+designation; if (confirm(msg)) {    document.location.replace('vente_article.php?vente='+vente+'&id_article='+id);   }  else  {  document.location.replace('vente_article.php?vente='+vente);     }} function confirmation_post(vente,id,designation,formulaire) { var msg = ' Confirmer la suppression de : '+designation; if (confirm(msg)) {    document.getElementById(formulaire).submit();   }  else  {  document.location.replace('vente_article.php?vente='+vente);     }} </SCRIPT><head>   <meta http-equiv="content-type" content="text/html; " />  <title>Les p'tits marsiens...</title>  <meta name="keywords" content="" />  <meta name="description" content="" />    <link href="default.css" rel="stylesheet" type="text/css" /></head><body><div id="page">	<?php include('menu_gauche.php'); ?>			<div id="content">		<div id="banner" style="height: 180px"><?phpinclude("functions.inc.php");include("conf.inc.php");$msg="";$vente=$_GET['vente'];$article_a_supprimer=$_POST['id_article'];$connection=db_connect($host,$db,$username,$password);//echo "<h3> L'article a été retiré $article_a_supprimer</h3>";if (isset($article_a_supprimer)):  $vente=$_POST['vente'];	$query="update pm_articles set etat=1,vente=0 where id=$article_a_supprimer and etat=2" ;  $result=exec_sql($query,$connection);	    $msg=" <h3> L'article a été retiré </h3>";endif;$posted=$_POST['posted'];if (isset($posted)):	$reference_article=$_POST['reference_article'];	$vente=$_POST['vente'];	list($code, $numero)=split('[A-Za-z]+', $reference_article);	$matches=array();	preg_match('/([A-Za-z]+)/',$reference_article,$matches);	$bourse=$matches[1];	$liste=codeetbourse2liste($code,$bourse,$connection);	$query="select id from pm_articles where liste=$liste and numero=$numero" ;	$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))	{		$article=$ligne[0];    }				$query="select 	a.designation, a.prix, a.liste, a.numero, a.etat, a.vente, 	l.code, l.bourse,	d.libelle as designation_courte,  	c.libelle as couleur,	m.libelle as marque	from 		pm_articles as a,		pm_designations_courtes as d,		pm_couleurs as c,		pm_marques as m,		pm_liste_articles as l	where 		a.id=$article 		and c.id=a.couleur		and d.id=a.designation_courte		and m.id=a.marque		and l.id=a.liste		" ;		$result=exec_sql($query,$connection);		while ($ligne=fetch_row($result))	{	  $designation=$ligne['designation'] ;		$prix=$ligne['prix'];		$liste=$ligne['liste'];		$code=$ligne['code'];				$bourse=$ligne['bourse'];		$numero=$ligne['numero'];		$etat=$ligne['etat'];		$designation_courte=$ligne['designation_courte'];		$couleur=$ligne['couleur'];		$marque=$ligne['marque'];		$vente_enregistree=$ligne['vente'];		$msg=" <table class=sample><tr>        <td><font color=FF0000 size=+3><b>$code$bourse-$numero</b></font></td><td> <font color=000000 size=+3><b>$prix  € </b></font></td></tr></table> 		<font size=+1>		<table class=sample><tr>        <td>$designation_courte</td><td> $designation </td><td> $couleur</td><td> $marque</td>		</tr></table> 		</font>";	}		echo "<h3>$etat</h3>";		if (($etat==2)&&($vente==$vente_enregistree)):			$msg="$msg <br> 			<font size=+3><table class=sample><tr>			<td><font color=FF0000><b> Cet article est déjà enregistré </b></td>			</tr></table> </font>";	endif;		if (($etat==2)&&($vente<>$vente_enregistree)):			$msg="$msg <br> 			<font size=+3><table class=sample><tr>			<td><font color=FF0000><b> Erreur : Cet article est déjà vendu ! </b></td>			</tr></table> </font>";	endif;	if (($etat==3)):			$msg="$msg <br> 			<font size=+3><table class=sample><tr>			<td><font color=FF0000><b> Erreur : Cet article a été repris ! </b></td>			</tr></table> </font>";	endif;  $query="update pm_articles set etat=2,vente=$vente where id=$article and etat=1" ;  $result=exec_sql($query,$connection);	endif;$query="select p.prenom, p.nom , p.categorie from pm_ventes as v, pm_personnes as p where v.id=$vente and v.client=p.id " ;$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result)){		$nom_client="$ligne[0] $ligne[1]";		$categorie=$ligne[2];}$query="select v.etat from pm_ventes as v where v.id=$vente " ;$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result)){		$etat_vente=$ligne[0];		if ($etat_vente==2):		  ouvre_page("vente_fin.php?vente=$vente");		  $msg="<h3>Cette vente est terminée </h3>      <h3><a href=\"voir_vente.php?vente=$vente\" target=_blank><img src=images/presse78.gif align=center border=0> Voir le reçu imprimable</a>  </h1>      ";		endif;}echo $msg;?><!-- <img src="images/banner.jpg" alt="" height="220" width="740" /> --></div><div class="boxed" >			<!-- <h3>Caisse</h3> --><?php//----// début formulaire si la vente est ouverteecho "<h1 class=\"title2\">Vente n°$vente : $nom_client</h1> ";if($etat_vente==1):  echo "  <form method=post action=vente_article.php name=vente>  référence Article (format numero_liste<b>-</b>numero_article_dans_liste):   <br><input type=texte size=110 name=reference_article>  ";  echo "<hr>";  echo "<input type=hidden name=vente value=$vente>";  echo "  <center><input type=submit name=envoyer value=\"              AJOUTER            \"></center>  <input type=hidden name=posted value=1>  </form>  <form></form>";endif;	$counter=0;	$bgcolor="#FFFFFF";	echo "<table class=sample>	<tr bgcolor=#FFFFBB>	<td> référence </td>	<td> </td>	<td> designation </td>	<td> </td>	<td> </td>	<td> type </td>	<td> taille </td>	<td> prix </td>	</tr>";	$query="select   a.id as id,a.numero as numero, a.designation as designation, a.prix as prix, a.prix_vendeur as prix_vendeur, a.liste as liste,  l.code as code, l.bourse as bourse,  ty.type as type, ty.image as type_image,  ta.taille as taille, 	d.libelle as designation_courte,   c.libelle as couleur,  m.libelle as marque    from pm_articles as a, pm_types as ty, pm_tailles as ta, pm_designations_courtes as d, pm_couleurs as c, pm_marques as m ,pm_liste_articles as l  where a.vente=$vente and a.taille=ta.id and a.type=ty.id  and a.designation_courte=d.id and a.couleur=c.id and a.marque=m.id  and a.liste=l.id	order by liste, numero";	$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		$numero=$ligne['numero'];		$liste=$ligne['liste'];		$bourse=$ligne['bourse'];		$code=$ligne['code'];		$designation_text=text2js($ligne['designation']);		$designation=$ligne['designation'];		$type=$ligne['type'];			$type_image=$ligne['type_image'];					$taille=$ligne['taille'];		$prix=$ligne['prix'];		$id=$ligne['id'];		$designation_courte=$ligne['designation_courte'];		$couleur=$ligne['couleur'];		$marque=$ligne['marque'];		$message="Voulez-vous supprimer $code $bourse $numéro $designation ?";				echo "<tr bgcolor=$bgcolor>		<td> $code $bourse $numero  </td>		<td> $designation_courte </td>		<td> $designation  </td>		<td> $couleur </td>		<td> $marque </td>		<td><img src=\"$type_image\"></td>		<td> $taille </td> 		<td> $prix €</td>		<td>         <form name=supprimer_$id id=supprimer_$id method=post action=vente_article.php>    <input type=hidden name=id_article value=$id>    <input type=hidden name=vente value=$vente>    </form>    <a href=# onclick='confirmation_post($vente,$id,\" $designation_text\",\"supprimer_$id\")' ><img src=images/delete.png></a>    </td>		</tr>";				$counter++;		if (($counter%2) == 0):			$bgcolor="#FFFFFF";		else:			$bgcolor="#EEEEEE";				endif;	}		$query="select sum(prix),count(*) 	from pm_articles  where vente=$vente 	";	$result=exec_sql($query,$connection);	while ($ligne=fetch_row($result))	{		echo "<tr>		<td colspan=4> TOTAL </td> 		<td> $ligne[0] €</td>		</tr>";				echo "<tr>		<td colspan=3>  </td> 		<td colspan=2> $ligne[1] articles</td>		</tr>";				}	echo "</table>";  echo "  <form method=post action=terminer_vente.php>  <input type=hidden name=vente value=$vente>  <center><input type=submit name=envoyer value=\"              TERMINER            \"></center>  <input type=hidden name=posted value=1>  </form>  ";//phpinfo();echo "<hr>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";tab_vente($connection);echo "<br>";?>    </div></div>	<div style="clear: both;">&nbsp;</div></div><script>  document.vente.reference_article.focus();</script><?php include("footer.php");?></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<SCRIPT>
+
+var fnOnClick = function(){
+	if (confirm('Voulez-vous supprimer ?')){
+		alert('OK');
+		doc.getEl.sublmit();
+	}else{
+//		alert('OK');
+	}
+}
+
+function confirmation(vente,id,designation) { 
+var msg = 'confirmer la suppression de'+designation; 
+if (confirm(msg)) {
+    document.location.replace('vente_article.php?vente='+vente+'&id_article='+id); 
+  }
+  else
+  {
+  document.location.replace('vente_article.php?vente='+vente);   
+  }
+} 
+
+function confirmation_post(vente,id,designation,formulaire) { 
+var msg = ' Confirmer la suppression de : '+designation; 
+if (confirm(msg)) {
+    document.getElementById(formulaire).submit(); 
+  }
+  else
+  {
+  document.location.replace('vente_article.php?vente='+vente);   
+  }
+} 
+
+
+</SCRIPT>
+<head>
+ 
+  <meta http-equiv="content-type" content="text/html; " />
+  <title>Les p'tits marsiens...</title>
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  
+  <link href="default.css" rel="stylesheet" type="text/css" />
+</head>
+
+
+<body>
+
+<div id="page">
+	
+
+<?php include('menu_gauche.php'); ?>		
+
+	
+<div id="content">
+		
+<div id="banner" style="height: 180px">
+
+<?php
+include("functions.inc.php");
+include("conf.inc.php");
+
+$msg = "";
+$vente = filter_input(INPUT_GET, 'vente', FILTER_SANITIZE_NUMBER_INT);
+$article_a_supprimer = filter_input(INPUT_POST, 'id_article', FILTER_SANITIZE_NUMBER_INT);
+$connection=db_connect($host,$port,$db,$username,$password);
+$etat = 0;
+
+if (isset($article_a_supprimer)) {
+    $vente = filter_input(INPUT_POST, 'vente', FILTER_SANITIZE_NUMBER_INT);
+    $query = "UPDATE pm_articles SET etat=1, vente=0 WHERE id = :article_a_supprimer AND etat = 2";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':article_a_supprimer', $article_a_supprimer, PDO::PARAM_INT);
+    $stmt->execute();
+    $msg = "<h3>L'article a Ã©tÃ© retirÃ©</h3>";
+}
+
+$posted = filter_input(INPUT_POST, 'posted', FILTER_SANITIZE_NUMBER_INT);
+if (isset($posted)) {
+	$reference_article = $_POST['reference_article'] ?? null;
+	$vente = filter_input(INPUT_POST, 'vente', FILTER_SANITIZE_NUMBER_INT);
+
+	if ($reference_article) {
+		// Limiter la division Ã  deux parties : le code et le numÃ©ro
+		$split_result = preg_split('/[A-Za-z]+/', $reference_article, 2);
+		
+		if (count($split_result) < 2) {
+			$msg = "Erreur dans le format de la rÃ©fÃ©rence article.";
+		} else {
+			list($code, $numero) = $split_result;
+			
+			$matches = [];
+			// On essaie d'extraire la partie bourse avec une expression rÃ©guliÃ¨re
+			if (preg_match('/([A-Za-z]+)/', $reference_article, $matches)) {
+				$bourse = isset($matches[1]) ? $matches[1] : '';
+			} else {
+				$bourse = '';
+			}
+			
+			// VÃ©rifier si les parties code et bourse sont valides avant de procÃ©der
+			if ($code && $bourse) {
+				$liste = codeetbourse2liste($code, $bourse, $connection);
+			} else {
+				$msg = "Erreur dans le format de la rÃ©fÃ©rence article.";
+			}
+		}
+	} else {
+		$msg = "RÃ©fÃ©rence article invalide ou manquante.";
+		echo($reference_article);
+	}
+    
+    $query = "SELECT id FROM pm_articles WHERE liste = :liste AND numero = :numero";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':liste', $liste, PDO::PARAM_INT);
+    $stmt->bindParam(':numero', $numero, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $article = $ligne['id'];
+    }
+    
+    $query = "SELECT a.designation, a.prix, a.liste, a.numero, a.etat, a.vente, 
+                     l.code, l.bourse,
+                     d.libelle AS designation_courte,  
+                     c.libelle AS couleur,
+                     m.libelle AS marque
+              FROM pm_articles AS a
+              JOIN pm_designations_courtes AS d ON d.id = a.designation_courte
+              JOIN pm_couleurs AS c ON c.id = a.couleur
+              JOIN pm_marques AS m ON m.id = a.marque
+              JOIN pm_liste_articles AS l ON l.id = a.liste
+              WHERE a.id = :article";
+    
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':article', $article, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $designation = $ligne['designation'];
+        $prix = $ligne['prix'];
+        $liste = $ligne['liste'];
+        $code = $ligne['code'];
+        $bourse = $ligne['bourse'];
+        $numero = $ligne['numero'];
+        $etat = $ligne['etat'];
+        $designation_courte = $ligne['designation_courte'];
+        $couleur = $ligne['couleur'];
+        $marque = $ligne['marque'];
+        $vente_enregistree = $ligne['vente'];
+        $msg = "<table class='sample'>
+                    <tr>
+                        <td><font color='#FF0000' size='+3'><b>$code$bourse-$numero</b></font></td>
+                        <td><font color='#000000' size='+3'><b>$prix â‚¬</b></font></td>
+                    </tr>
+                </table>
+                <font size='+1'>
+                <table class='sample'>
+                    <tr>
+                        <td>$designation_courte</td>
+                        <td>$designation</td>
+                        <td>$couleur</td>
+                        <td>$marque</td>
+                    </tr>
+                </table>
+                </font>";
+    }
+    
+    if ($etat == 2 && $vente == $vente_enregistree) {
+        $msg .= "<br><font size='+3'><table class='sample'>
+                    <tr>
+                        <td><font color='#FF0000'><b>Cet article est dÃ©jÃ  enregistrÃ©</b></font></td>
+                    </tr>
+                </table></font>";
+    }
+    
+    if ($etat == 2 && $vente != $vente_enregistree) {
+        $msg .= "<br><font size='+3'><table class='sample'>
+                    <tr>
+                        <td><font color='#FF0000'><b>Erreur : Cet article est dÃ©jÃ  vendu !</b></font></td>
+                    </tr>
+                </table></font>";
+    }
+    
+    if ($etat == 3) {
+        $msg .= "<br><font size='+3'><table class='sample'>
+                    <tr>
+                        <td><font color='#FF0000'><b>Erreur : Cet article a Ã©tÃ© repris !</b></font></td>
+                    </tr>
+                </table></font>";
+    }
+
+    $query = "UPDATE pm_articles SET etat = 2, vente = :vente WHERE id = :article AND etat = 1";
+    $stmt = $connection->prepare($query);
+    $stmt->bindParam(':vente', $vente, PDO::PARAM_INT);
+    $stmt->bindParam(':article', $article, PDO::PARAM_INT);
+    $stmt->execute();
+}
+
+$query = "SELECT p.prenom, p.nom, p.categorie FROM pm_ventes AS v
+          JOIN pm_personnes AS p ON v.client = p.id
+          WHERE v.id = :vente";
+$stmt = $connection->prepare($query);
+$stmt->bindParam(':vente', $vente, PDO::PARAM_INT);
+$stmt->execute();
+
+while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $nom_client = $ligne['prenom'] . " " . $ligne['nom'];
+    $categorie = $ligne['categorie'];
+}
+
+$query = "SELECT v.etat FROM pm_ventes AS v WHERE v.id = :vente";
+$stmt = $connection->prepare($query);
+$stmt->bindParam(':vente', $vente, PDO::PARAM_INT);
+$stmt->execute();
+
+while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $etat_vente = $ligne['etat'];
+    if ($etat_vente == 2) {
+        header("Location: vente_fin.php?vente=$vente");
+        exit;
+    }
+}
+
+echo $msg;
+?>
+
+<!-- <img src="images/banner.jpg" alt="" height="220" width="740" /> -->
+
+
+</div>
+
+<div class="boxed" >
+			
+<!-- <h3>Caisse</h3> -->
+
+<?php
+
+
+
+echo "<h1 class='title2'>Vente nÂ°$vente : $nom_client</h1>";
+
+if ($etat_vente == 1) {
+    echo "
+    <form method='post' action='vente_article.php' name='vente'>
+        RÃ©fÃ©rence Article (format numero_liste<b>-</b>numero_article_dans_liste) : 
+        <br><input type='text' size='110' name='reference_article'>
+        <hr>
+        <input type='hidden' name='vente' value='$vente'>
+        <center><input type='submit' name='envoyer' value='AJOUTER'></center>
+        <input type='hidden' name='posted' value='1'>
+    </form>";
+}
+
+$counter = 0;
+$bgcolor = "#FFFFFF";
+
+echo "<table class='sample'>
+    <tr bgcolor='#FFFFBB'>
+        <td>RÃ©fÃ©rence</td>
+        <td></td>
+        <td>DÃ©signation</td>
+        <td></td>
+        <td></td>
+        <td>Type</td>
+        <td>Taille</td>
+        <td>Prix</td>
+    </tr>";
+
+$query = "SELECT 
+            a.id AS id, a.numero AS numero, a.designation AS designation, a.prix AS prix, a.prix_vendeur AS prix_vendeur, a.liste AS liste,
+            l.code AS code, l.bourse AS bourse,
+            ty.type AS type, ty.image AS type_image,
+            ta.taille AS taille, 
+            d.libelle AS designation_courte, 
+            c.libelle AS couleur,
+            m.libelle AS marque  
+          FROM pm_articles AS a
+          JOIN pm_types AS ty ON a.type = ty.id
+          JOIN pm_tailles AS ta ON a.taille = ta.id
+          JOIN pm_designations_courtes AS d ON a.designation_courte = d.id
+          JOIN pm_couleurs AS c ON a.couleur = c.id
+          JOIN pm_marques AS m ON a.marque = m.id
+          JOIN pm_liste_articles AS l ON a.liste = l.id
+          WHERE a.vente = :vente
+          ORDER BY liste, numero";
+
+$stmt = $connection->prepare($query);
+$stmt->bindParam(':vente', $vente, PDO::PARAM_INT);
+$stmt->execute();
+
+while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $numero = $ligne['numero'];
+    $liste = $ligne['liste'];
+    $bourse = $ligne['bourse'];
+    $code = $ligne['code'];
+    $designation_text = text2js($ligne['designation']);
+    $designation = htmlspecialchars($ligne['designation'], ENT_QUOTES, 'UTF-8');
+    $type = htmlspecialchars($ligne['type'], ENT_QUOTES, 'UTF-8');
+    $type_image = htmlspecialchars($ligne['type_image'], ENT_QUOTES, 'UTF-8');
+    $taille = htmlspecialchars($ligne['taille'], ENT_QUOTES, 'UTF-8');
+    $prix = $ligne['prix'];
+    $id = $ligne['id'];
+    $designation_courte = htmlspecialchars($ligne['designation_courte'], ENT_QUOTES, 'UTF-8');
+    $couleur = htmlspecialchars($ligne['couleur'], ENT_QUOTES, 'UTF-8');
+    $marque = htmlspecialchars($ligne['marque'], ENT_QUOTES, 'UTF-8');
+    
+    $prix = number_format($prix, 2, ',', ' ');
+    
+    $counter++;
+    $bgcolor = ($counter % 2 == 0) ? "#F7F7F7" : "#FFFFFF";
+    $supprimer_lien = "<a href='javascript:confirmation_post(\"vente_article.php\", \"id_article\", \"$id\");'><img src='img/supprimer.gif' alt='Supprimer' title='Supprimer'></a>";
+
+    echo "<tr bgcolor='$bgcolor'>
+            <td><b>$code$bourse-$numero</b></td>
+            <td>$supprimer_lien</td>
+            <td>$designation_courte $designation</td>
+            <td>$couleur</td>
+            <td>$marque</td>
+            <td>$type</td>
+            <td>$taille</td>
+            <td>$prix â‚¬</td>
+        </tr>";
+}
+echo "</table>";
+
+echo "
+<form method=post action=terminer_vente.php>
+<input type=hidden name=vente value=$vente>
+<center><input type=submit name=envoyer value=\"              TERMINER            \"></center>
+<input type=hidden name=posted value=1>
+</form>
+";
+
+//phpinfo();
+echo "<hr>";
+echo "<br>";
+echo "<br>";
+echo "<br>";
+echo "<br>";
+echo "<br>";
+echo "<br>";
+echo "<br>";
+tab_vente($connection);
+echo "<br>";
+?>
+	
+</div>
+</div>
+	
+<div style="clear: both;">&nbsp;</div>
+</div>
+<script>
+  document.vente.reference_article.focus();
+</script>
+<?php include("footer.php");?>
+
+
+</body>
+</html>

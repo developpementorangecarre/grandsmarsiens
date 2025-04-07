@@ -21,7 +21,7 @@ function popUp(URL)
 <?php
 include("functions.inc.php");
 include("conf.inc.php");
-$connection=db_connect($host,$db,$username,$password);
+$connection=db_connect($host,$port,$db,$username,$password);
 
 
 $query="select a.id,a.designation,a.liste,a.numero,a.prix,t.taille from pm_articles as a,pm_tailles as t where a.taille=t.id";
@@ -55,10 +55,10 @@ while($row=fetch_row($result))
 		echo '</tr><tr>';
 	}
 
-	//echo "<td align='center'><img src='../classes/barcode.php?barcode=$row[$generateWith]&width=206&height=75&text=*$row[id]* ( $row[supplier_id])'><br> $row[item_name] <br> Taille : $taille <b>Prix : $row[total_cost] €</b></td>";
+	//echo "<td align='center'><img src='../classes/barcode.php?barcode=$row[$generateWith]&width=206&height=75&text=*$row[id]* ( $row[supplier_id])'><br> $row[item_name] <br> Taille : $taille <b>Prix : $row[total_cost] ï¿½</b></td>";
 	echo "<td align='center' width=25% height=$hauteur valign=top>
       <img src='classes/barcode.php?barcode=$liste$separateur$numero&width=206&height=55&text=$liste - $numero '>
-      <font size=3>Taille : $taille <br></font><font size=5><b> $prix €  </b></font><br>
+      <font size=3>Taille : $taille <br></font><font size=5><b> $prix ï¿½  </b></font><br>
       </td>";
 
 	

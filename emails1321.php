@@ -19,20 +19,21 @@ include("conf.inc.php");
 
 $connection=db_connect($host,$port,$db,$username,$password);
 
-try {
-  $query = "SELECT email FROM pm_personnes WHERE email LIKE :email ORDER BY email";
-  
-  $stmt = $connection->prepare($query);
-  $stmt->execute([':email' => '%@%']);
-  
-  while ($ligne = $stmt->fetch(PDO::FETCH_ASSOC)) {
-      $email = $ligne['email'];
-      echo htmlspecialchars($email) . "<br>";
-  }
-} catch (PDOException $e) {
-  error_log("Erreur SQL : " . $e->getMessage());
-  echo "<p>Une erreur est survenue lors de l'exécution de la requête.</p>";
-}
+$query="select email from pm_personnes 
+		where email like '%@%' and id > 1320 order by id
+		" ;
+
+$result=exec_sql($query,$connection);	
+while ($ligne=fetch_row($result))
+{
+		$email="$ligne[0]";
+		echo "$email<br>
+	";
+	
+	}
+
+
+
 
 
 ?>
