@@ -10,7 +10,7 @@ $connection=db_connect($host,$port,$db,$username,$password);
 
 echo "";
 $valeur=getval("title",$connection);
-echo"<title>$valeur</title>";
+echo"<title>Les Grands Marsiens</title>";
 ?>
   <meta name="keywords" content="" />
   <meta name="description" content="" />
