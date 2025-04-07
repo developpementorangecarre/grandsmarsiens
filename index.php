@@ -50,11 +50,11 @@ $result=exec_sql($query,$connection);
 <ul>
 <li> <a href=nouvelle_liste.php>DEPOT : Ajouter des articles</a>
 <li> <a href=liste_listes_articles.php>DEPOT : Les listes d'articles</a>
-<li> <a href=barcode_articles.php>Codes � Barres d'articles</a>
+<li> <a href=barcode_articles.php>Codes à Barres d'articles</a>
 <?php
 echo"
 <form method=get action=liste_depots.php>
-	Imprimer les d�p�ts de la bourse : <select name=bourse_active>";
+	Imprimer les dépôts de la bourse : <select name=bourse_active>";
 	
 	$query="select id,statut from pm_bourses order by id asc";
 	$result=exec_sql($query,$connection);
@@ -84,8 +84,8 @@ echo "<input type=submit name=envoyer value=\" OK \">
 <h3>PERSONNE</h3>
 <ul>
 <li> <a href=recherche_personne.php>Rechercher des personnes</a>
-<li> <a href=nouvelle_personne.php>Cr�er une nouvelle personne</a>
-<li> <a href=liste_personne.php>Lister/modifier les donn�es </a>
+<li> <a href=nouvelle_personne.php>Créer une nouvelle personne</a>
+<li> <a href=liste_personne.php>Lister/modifier les données </a>
 </ul>
 
 <h3>BOURSES</h3>
@@ -94,7 +94,7 @@ echo "<input type=submit name=envoyer value=\" OK \">
 <?php
 echo"
 <form method=get action=liste_listes_articles.php>
-	Liste rattach�es � la bourse : <select name=bourse_selection>";
+	Liste rattachées à la bourse : <select name=bourse_selection>";
 	
 	$query="select id,statut from pm_bourses order by id asc";
 	$result=exec_sql($query,$connection);
@@ -118,7 +118,7 @@ echo "<input type=submit name=envoyer value=\" OK \">
 <?php
 echo"
 <form method=get action=retrait_articles.php>
-	Imprimer les re�us de la bourse : <select name=bourse_active>";
+	Imprimer les reçus de la bourse : <select name=bourse_active>";
 	
 	$query="select id,statut from pm_bourses order by id asc";
 	$result=exec_sql($query,$connection);
@@ -139,7 +139,7 @@ echo "<input type=submit name=envoyer value=\" OK \">
 </form>";
 
 ?>
-<li> <a href=gerer_bourses.php>G�rer les bourses</a>
+<li> <a href=gerer_bourses.php>Gérer les bourses</a>
 
 <br>
 
