@@ -1,0 +1,108 @@
+[Config]
+Relative path=1
+Compilator.SaveAll=0
+Compilator.Capture=0
+Compilator.HideOutput=0
+Compilator.LogType=0
+DefaultCPIndex=0
+LogtoEnd=1
+DontOpen=0
+FileFormat=0
+[Project tree]
+Marsiens
+	+Répertoire
+		articles.php
+		barcodes.php
+		conf.inc.php
+		creer_liste.php
+		creer_vente.php
+		default.css
+		erreur.php
+		footer.php
+		functions.inc.php
+		index.php
+		liste_articles.php
+		liste_listes_articles.php
+		liste_personne.php
+		liste_ventes.php
+		menu_gauche.php
+		modifier_article.php
+		modifier_personne.php
+		nouveau_article.php
+		nouveau_retrait.php
+		nouvelle_liste.php
+		nouvelle_personne.php
+		nouvelle_vente.php
+		personnes.php
+		planche_barcodes.php
+		print_barcodes.php
+		print_planche_barcodes.php
+		printer.css
+		recherche_personne.php
+		retrait_articles.php
+		retrait_cocher_articles.php
+		retraits.php
+		terminer_vente.php
+		test_include.php
+		toto.php
+		vente_article.php
+		vente_fin.php
+		ventes.php
+		voir_vente.php
+		depot_articles.php
+[Open project files]
+0=print_planche_barcodes.php
+1=planche_barcodes.php
+2=modifier_personne.php
+3=vente_article.php
+4=print_barcodes.php
+5=articles.php
+6=nouveau_article.php
+7=nouvelle_liste.php
+8=depot_articles.php
+9=modifier_article.php
+10=functions.inc.php
+11=menu_gauche.php
+12=liste_personne.php
+[Selected Project Files]
+Main=
+Selected=vente_article.php
+[print_planche_barcodes.php]
+TopLine=74
+Caret=4,90
+[planche_barcodes.php]
+TopLine=28
+Caret=37,44
+[modifier_personne.php]
+TopLine=124
+Caret=3,143
+[vente_article.php]
+TopLine=86
+Caret=2,103
+[print_barcodes.php]
+TopLine=25
+Caret=30,49
+[articles.php]
+TopLine=1
+Caret=19,22
+[nouveau_article.php]
+TopLine=124
+Caret=63,135
+[nouvelle_liste.php]
+TopLine=61
+Caret=86,91
+[depot_articles.php]
+TopLine=113
+Caret=52,114
+[modifier_article.php]
+TopLine=51
+Caret=1,74
+[functions.inc.php]
+TopLine=30
+Caret=34,63
+[menu_gauche.php]
+TopLine=4
+Caret=1,43
+[liste_personne.php]
+TopLine=56
+Caret=1,76

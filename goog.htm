@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
+<!-- saved from url=(0051)http://localhost/marsiens/vente_article.php?vente=1 -->
+<HTML 
+xmlns="http://www.w3.org/1999/xhtml"><HEAD><TITLE>Les p'tits marsiens...</TITLE>
+<SCRIPT>
+
+var fnOnClick = function(){
+	if (confirm('Voulez-vous supprimer ?')){
+		alert('OK');
+		doc.getEl.sublmit();
+	}else{
+//		alert('OK');
+	}
+}
+
+function confirmation(vente,id,designation) { 
+var msg = 'confirmer la suppression de'+designation; 
+if (confirm(msg)) {
+    document.location.replace('vente_article.php?vente='+vente+'&id_article='+id); 
+  }
+  else
+  {
+  document.location.replace('vente_article.php?vente='+vente);   
+  }
+} 
+
+function confirmation_post(vente,id,designation,formulaire) { 
+var msg = ' Confirmer la suppression de : '+designation; 
+if (confirm(msg)) {
+    document.getElementById(formulaire).submit(); 
+  }
+  else
+  {
+  document.location.replace('vente_article.php?vente='+vente);   
+  }
+} 
+
+
+</SCRIPT>
+
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="" name=keywords>
+<META content="" name=description><LINK href="goog_fichiers/default.css" 
+type=text/css rel=stylesheet>
+<META content="MSHTML 6.00.6000.16735" name=GENERATOR></HEAD>
+<BODY>
+<DIV id=page>
+<DIV id=sidebar>
+<DIV id=logo>
+<H1><A href="http://localhost/marsiens/vente_article.php?vente=1#"></A></H1>
+<H2><A 
+href="http://localhost/marsiens/vente_article.php?vente=1#"></A></H2></DIV>
+<DIV id=menu>
+<UL>
+  <LI class=first><A 
+  href="http://localhost/marsiens/index.php">Accueil&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</A> 
+
+  <LI><A 
+  href="http://localhost/marsiens/personnes.php">Personnes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</A> 
+
+  <LI><A 
+  href="http://localhost/marsiens/ventes.php">Ventes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</A> 
+
+  <LI><A 
+  href="http://localhost/marsiens/articles.php">Dépot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</A> 
+
+  <LI><A 
+  href="http://localhost/marsiens/retraits.php">Retrait&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</A> 
+  </LI></UL></DIV>
+<DIV id=login>
+<FORM action=liste_personne.php method=get>
+<H2 class=title1>Nom d'une personne</H2><INPUT size=30 name=nom></TD> 
+</TR><TR><TD colspan="2"></TR></TD></TABLE></FORM>
+<H2 class=title1>
+<TABLE width="100%">
+  <TBODY>
+  <TR>
+    <TD align=right width="80%">Personne n° </TD>
+    <TD>
+      <FORM action=liste_personne.php method=get><INPUT size=3 
+  name=id></FORM></TD></TR></TBODY></TABLE></H2>
+<H2 class=title1>
+<TABLE width="100%">
+  <TBODY>
+  <TR>
+    <TD align=right width="80%">Dépot n° </TD>
+    <TD>
+      <FORM action=depot_articles.php method=get><INPUT size=3 
+    name=liste></FORM></TD></TR></TBODY></TABLE></H2>
+<H2 class=title1>
+<TABLE width="100%">
+  <TBODY>
+  <TR>
+    <TD align=right width="80%">Retrait du dépôt n° </TD>
+    <TD>
+      <FORM action=retrait_cocher_articles.php method=get><INPUT size=3 
+      name=liste></FORM></TD></TR></TBODY></TABLE></H2></DIV></DIV>
+<DIV id=content>
+<DIV><IMG height=220 alt="" src="goog_fichiers/banner.jpg" width=740></DIV>
+<DIV class=boxed><!-- <h3>Caisse</h3> -->
+<SCRIPT language=Javascript>
+<!--
+function toggleDiv(id,flagit) {
+if (flagit=="1"){
+if (document.layers) document.layers[''+id+''].visibility = "show"
+else if (document.all) document.all[''+id+''].style.visibility = "visible"
+else if (document.getElementById) document.getElementById(''+id+'').style.visibility = "visible"
+}
+else
+if (flagit=="0"){
+if (document.layers) document.layers[''+id+''].visibility = "hide"
+else if (document.all) document.all[''+id+''].style.visibility = "hidden"
+else if (document.getElementById) document.getElementById(''+id+'').style.visibility = "hidden"
+}
+}
+//-->
+</SCRIPT>
+
+<H1 class=title2>Vente n°1 : Stéphanie Kim</H1>
+<FORM name=vente action=vente_article.php method=post>référence Article (format 
+numero_liste<B>-</B>numero_article_dans_liste): <BR><INPUT type=texte size=110 
+name=q> 
+<HR>
+<INPUT type=hidden value=1 name=vente> 
+<CENTER><INPUT type=submit value="              AJOUTER            " name=envoyer></CENTER><INPUT 
+type=hidden value=1 name=posted> </FORM>
+<FORM></FORM>
+<TABLE class=sample>
+  <TBODY>
+  <TR bgColor=#ffffbb>
+    <TD>référence </TD>
+    <TD>designation </TD>
+    <TD>type </TD>
+    <TD>taille </TD>
+    <TD>prix </TD></TR>
+  <TR bgColor=#ffffff>
+    <TD>1-13 </TD>
+    <TD>anneau de dentition </TD>
+    <TD>puériculture </TD>
+    <TD>3 mois </TD>
+    <TD>1.00 €</TD>
+    <TD>
+      <FORM id=13 name=supprimer_13 action=vente_article.php method=post><INPUT 
+      type=hidden value=13 name=id_article> <INPUT type=hidden value=1 
+      name=vente> </FORM><A 
+      onclick='confirmation_post(1,13," anneau de dentition","supprimer_13")' 
+      href="http://localhost/marsiens/vente_article.php?vente=1#">Supprimer</A> 
+    </TD></TR>
+  <TR bgColor=#eeeeee>
+    <TD>1-14 </TD>
+    <TD>doudou beige </TD>
+    <TD>jeux / jouets </TD>
+    <TD>naissance </TD>
+    <TD>1.00 €</TD>
+    <TD>
+      <FORM id=14 name=supprimer_14 action=vente_article.php method=post><INPUT 
+      type=hidden value=14 name=id_article> <INPUT type=hidden value=1 
+      name=vente> </FORM><A 
+      onclick='confirmation_post(1,14," doudou beige","supprimer_14")' 
+      href="http://localhost/marsiens/vente_article.php?vente=1#">Supprimer</A> 
+    </TD></TR>
+  <TR>
+    <TD colSpan=4>TOTAL </TD>
+    <TD>2.00 €</TD></TR></TBODY></TABLE>
+<FORM action=terminer_vente.php method=post><INPUT type=hidden value=1 
+name=vente> 
+<CENTER><INPUT type=submit value="              TERMINER            " name=envoyer></CENTER><INPUT 
+type=hidden value=1 name=posted> </FORM></DIV></DIV>
+<DIV style="CLEAR: both">&nbsp;</DIV></DIV>
+<SCRIPT>
+  document.vente.q.focus();
+</SCRIPT>
+
+<DIV id=footer>
+<P id=legal>Les p'tits marsiens - Association de loi 1901.</P>
+<P id=links><A 
+href="http://localhost/marsiens/vente_article.php?vente=1#"><BR></A><A 
+href="http://localhost/marsiens/vente_article.php?vente=1#"></A></P></DIV></BODY></HTML>
